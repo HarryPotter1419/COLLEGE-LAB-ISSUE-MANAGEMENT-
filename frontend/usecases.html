@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Use Cases — Lab Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #050d0a;
+      color: #e8f0ec;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── BACKGROUND ─────────────────────────────────────────── */
+    .page-bg {
+      position: fixed; inset: 0; z-index: 0;
+      background: #050d0a; overflow: hidden;
+    }
+
+    .page-bg::before {
+      content: '';
+      position: absolute;
+      top: -15%; left: 50%;
+      transform: translateX(-50%);
+      width: 1000px; height: 700px;
+      background: radial-gradient(ellipse at center,
+        rgba(18,130,82,0.45) 0%,
+        rgba(10,90,55,0.22) 30%,
+        rgba(5,35,20,0.08) 60%,
+        transparent 80%
+      );
+      pointer-events: none;
+    }
+
+    .grid-overlay {
+      position: fixed; inset: 0; z-index: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+    }
+
+    .page-content { position: relative; z-index: 1; }
+
+    /* ── NAVBAR ──────────────────────────────────────────────── */
+    .navbar {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1rem 3rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      backdrop-filter: blur(16px);
+      background: rgba(5,13,10,0.55);
+      position: sticky; top: 0; z-index: 100;
+    }
+
+    .nav-logo {
+      display: flex; align-items: center;
+      gap: 0.55rem; text-decoration: none;
+    }
+
+    .nav-logo .logo-icon {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, #1de99b, #0fb870);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem;
+      box-shadow: 0 0 14px rgba(29,233,155,0.35);
+    }
+
+    .nav-logo .logo-text {
+      font-size: 1.05rem; font-weight: 400;
+      letter-spacing: -0.01em; color: #e8f0ec;
+    }
+
+    .nav-logo .logo-text strong { font-weight: 800; color: #1de99b; }
+
+    .nav-links { display: flex; align-items: center; gap: 0.15rem; }
+
+    .nav-links a {
+      color: rgba(232,240,236,0.65);
+      text-decoration: none; font-size: 0.9rem;
+      font-weight: 500; padding: 0.42rem 1rem;
+      border-radius: 8px; transition: all 0.15s ease;
+    }
+
+    .nav-links a:hover { color: #e8f0ec; background: rgba(255,255,255,0.06); }
+    .nav-links a.active { color: #1de99b; }
+
+    .nav-right { display: flex; align-items: center; gap: 0.75rem; }
+
+    .signin-btn {
+      display: flex; align-items: center; gap: 0.4rem;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.14);
+      color: #e8f0ec;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem; font-weight: 600;
+      padding: 0.48rem 1.1rem; border-radius: 8px;
+      cursor: pointer; transition: all 0.15s ease;
+      text-decoration: none;
+    }
+
+    .signin-btn:hover {
+      background: rgba(29,233,155,0.08);
+      border-color: rgba(29,233,155,0.4);
+      color: #1de99b;
+    }
+
+    /* ── PAGE HEADER ─────────────────────────────────────────── */
+    .page-header {
+      text-align: center;
+      padding: 5rem 2rem 3rem;
+    }
+
+    .page-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: rgba(29,233,155,0.07);
+      border: 1px solid rgba(29,233,155,0.18);
+      border-radius: 20px; padding: 0.32rem 1rem;
+      font-size: 0.75rem; font-weight: 600;
+      color: #1de99b; letter-spacing: 0.05em;
+      text-transform: uppercase; margin-bottom: 1.5rem;
+    }
+
+    .page-badge .dot {
+      width: 6px; height: 6px; background: #1de99b;
+      border-radius: 50%; box-shadow: 0 0 8px #1de99b;
+      animation: blink 2s ease infinite;
+    }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+
+    .page-header h1 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800; color: #ffffff;
+      letter-spacing: -0.03em; margin-bottom: 1rem;
+      line-height: 1.2;
+    }
+
+    .page-header h1 span {
+      background: linear-gradient(90deg, #1de99b, #00c4ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .page-header p {
+      font-size: 1rem; color: rgba(255,255,255,0.45);
+      max-width: 560px; margin: 0 auto;
+      line-height: 1.75;
+    }
+
+    /* ── CONTENT ─────────────────────────────────────────────── */
+    .content {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2rem 6rem;
+    }
+
+    /* ── ACTOR SECTION ───────────────────────────────────────── */
+    .actor-section {
+      margin-bottom: 3rem;
+    }
+
+    .actor-header {
+      display: flex; align-items: center; gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .actor-icon {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; flex-shrink: 0;
+    }
+
+    .actor-icon.student    { background: rgba(29,233,155,0.1);  border: 1px solid rgba(29,233,155,0.2);  }
+    .actor-icon.admin      { background: rgba(245,158,11,0.1);  border: 1px solid rgba(245,158,11,0.2);  }
+    .actor-icon.technician { background: rgba(45,212,191,0.1);  border: 1px solid rgba(45,212,191,0.2);  }
+    .actor-icon.system     { background: rgba(99,102,241,0.1);  border: 1px solid rgba(99,102,241,0.2);  }
+
+    .actor-title h2 {
+      font-size: 1.3rem; font-weight: 800;
+      color: #ffffff; letter-spacing: -0.02em;
+    }
+
+    .actor-title p {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.35);
+      margin-top: 0.2rem;
+    }
+
+    .actor-badge {
+      margin-left: auto;
+      padding: 0.25rem 0.85rem;
+      border-radius: 20px;
+      font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      flex-shrink: 0;
+    }
+
+    .actor-badge.student    { background: rgba(29,233,155,0.1);  color: #1de99b;  border: 1px solid rgba(29,233,155,0.2);  }
+    .actor-badge.admin      { background: rgba(245,158,11,0.1);  color: #f59e0b;  border: 1px solid rgba(245,158,11,0.2);  }
+    .actor-badge.technician { background: rgba(45,212,191,0.1);  color: #2dd4bf;  border: 1px solid rgba(45,212,191,0.2);  }
+    .actor-badge.system     { background: rgba(99,102,241,0.1);  color: #818cf8;  border: 1px solid rgba(99,102,241,0.2);  }
+
+    /* ── USE CASE CARDS GRID ─────────────────────────────────── */
+    .use-cases-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+
+    .use-case-card {
+      background: #0d1a12;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px;
+      padding: 1.25rem 1.4rem;
+      display: flex; align-items: flex-start; gap: 1rem;
+      transition: border-color 0.15s ease, transform 0.15s ease;
+      cursor: default;
+    }
+
+    .use-case-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .use-case-card.student:hover    { border-color: rgba(29,233,155,0.3);  }
+    .use-case-card.admin:hover      { border-color: rgba(245,158,11,0.3);  }
+    .use-case-card.technician:hover { border-color: rgba(45,212,191,0.3);  }
+    .use-case-card.system:hover     { border-color: rgba(99,102,241,0.3);  }
+
+    .use-case-num {
+      font-size: 0.7rem; font-weight: 800;
+      width: 26px; height: 26px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 1px;
+    }
+
+    .use-case-num.student    { background: rgba(29,233,155,0.12); color: #1de99b;  }
+    .use-case-num.admin      { background: rgba(245,158,11,0.12); color: #f59e0b;  }
+    .use-case-num.technician { background: rgba(45,212,191,0.12); color: #2dd4bf;  }
+    .use-case-num.system     { background: rgba(99,102,241,0.12); color: #818cf8;  }
+
+    .use-case-body h4 {
+      font-size: 0.9rem; font-weight: 700;
+      color: #ffffff; margin-bottom: 0.3rem;
+      line-height: 1.3;
+    }
+
+    .use-case-body p {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.38);
+      line-height: 1.6;
+    }
+
+    /* ── SYSTEM OVERVIEW BANNER ──────────────────────────────── */
+    .overview-banner {
+      background: linear-gradient(135deg, #0a1f14, #0d2418);
+      border: 1px solid rgba(29,233,155,0.15);
+      border-radius: 16px;
+      padding: 2rem 2.5rem;
+      margin-bottom: 3rem;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      text-align: center;
+    }
+
+    .overview-item .ov-num {
+      font-size: 2.5rem; font-weight: 900;
+      background: linear-gradient(90deg, #1de99b, #00c4ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+
+    .overview-item .ov-label {
+      font-size: 0.82rem; font-weight: 600;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .overview-divider {
+      width: 1px;
+      background: rgba(255,255,255,0.06);
+      margin: 0 auto;
+    }
+
+    /* ── FOOTER ──────────────────────────────────────────────── */
+    .footer {
+      text-align: center;
+      padding: 2rem;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.2);
+      font-size: 0.8rem;
+    }
+
+    .footer a { color: #1de99b; text-decoration: none; }
+
+    @media (max-width: 768px) {
+      .navbar { padding: 0.9rem 1.25rem; }
+      .nav-links { display: none; }
+      .page-header { padding: 3rem 1.25rem 2rem; }
+      .content { padding: 0 1.25rem 4rem; }
+      .use-cases-grid { grid-template-columns: 1fr; }
+      .overview-banner { grid-template-columns: 1fr; gap: 1.5rem; }
+      .actor-badge { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-bg"></div>
+<div class="grid-overlay"></div>
+
+<div class="page-content">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a class="nav-logo" href="index.html">
+      <div class="logo-icon">🔬</div>
+      <span class="logo-text">Lab<strong>Management</strong></span>
+    </a>
+
+    <div class="nav-links">
+      <a href="usecases.html" class="active">Help!</a>
+    </div>
+
+    <div class="nav-right">
+      <a href="index.html" class="signin-btn">Sign In ▾</a>
+    </div>
+  </nav>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="page-badge">
+      <span class="dot"></span>
+      System Use Cases
+    </div>
+    <h1>How <span>Lab Management</span><br/>Works for Everyone</h1>
+    <p>
+      A centralized platform designed for students, administrators, and technicians
+      to streamline lab issue reporting and resolution.
+    </p>
+  </div>
+
+  <div class="content">
+
+    <!-- OVERVIEW STATS -->
+    <div class="overview-banner">
+      <div class="overview-item">
+        <div class="ov-num">3</div>
+        <div class="ov-label">System Actors</div>
+      </div>
+      <div class="overview-item">
+        <div class="ov-num">12+</div>
+        <div class="ov-label">Use Cases</div>
+      </div>
+      <div class="overview-item">
+        <div class="ov-num">1</div>
+        <div class="ov-label">Centralized Platform</div>
+      </div>
+    </div>
+
+    <!-- STUDENT USE CASES -->
+    <div class="actor-section">
+      <div class="actor-header">
+        <div class="actor-icon student">🎓</div>
+        <div class="actor-title">
+          <h2>Student</h2>
+          <p>Reports issues and tracks their resolution status</p>
+        </div>
+        <span class="actor-badge student">Actor</span>
+      </div>
+      <div class="use-cases-grid">
+        <div class="use-case-card student">
+          <div class="use-case-num student">UC1</div>
+          <div class="use-case-body">
+            <h4>Register &amp; Login</h4>
+            <p>Students can create an account and securely log in to the system using their credentials.</p>
+          </div>
+        </div>
+        <div class="use-case-card student">
+          <div class="use-case-num student">UC2</div>
+          <div class="use-case-body">
+            <h4>Report Lab Issue</h4>
+            <p>Submit detailed issue reports with images, descriptions, lab location, and system number.</p>
+          </div>
+        </div>
+        <div class="use-case-card student">
+          <div class="use-case-num student">UC3</div>
+          <div class="use-case-body">
+            <h4>Track Issue Status</h4>
+            <p>View all submitted issues and monitor real-time status updates — Pending, In Progress, or Resolved.</p>
+          </div>
+        </div>
+        <div class="use-case-card student">
+          <div class="use-case-num student">UC4</div>
+          <div class="use-case-body">
+            <h4>Add Follow-up Comments</h4>
+            <p>Students can add additional comments or updates to their reported issues for better communication.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN USE CASES -->
+    <div class="actor-section">
+      <div class="actor-header">
+        <div class="actor-icon admin">👔</div>
+        <div class="actor-title">
+          <h2>Admin (HOD)</h2>
+          <p>Manages all lab issues and coordinates resolution</p>
+        </div>
+        <span class="actor-badge admin">Actor</span>
+      </div>
+      <div class="use-cases-grid">
+        <div class="use-case-card admin">
+          <div class="use-case-num admin">UC5</div>
+          <div class="use-case-body">
+            <h4>Login to Admin Dashboard</h4>
+            <p>HOD securely logs in to access the full administrative panel with real-time issue overview.</p>
+          </div>
+        </div>
+        <div class="use-case-card admin">
+          <div class="use-case-num admin">UC6</div>
+          <div class="use-case-body">
+            <h4>View &amp; Manage All Issues</h4>
+            <p>Access all reported issues with filters by lab, status, priority, and search functionality.</p>
+          </div>
+        </div>
+        <div class="use-case-card admin">
+          <div class="use-case-num admin">UC7</div>
+          <div class="use-case-body">
+            <h4>Assign Issues to Technicians</h4>
+            <p>Delegate specific issues to registered technicians for faster and more efficient resolution.</p>
+          </div>
+        </div>
+        <div class="use-case-card admin">
+          <div class="use-case-num admin">UC8</div>
+          <div class="use-case-body">
+            <h4>Update Status &amp; Add Remarks</h4>
+            <p>Change issue status and add admin remarks that are visible to the student who reported the issue.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TECHNICIAN USE CASES -->
+    <div class="actor-section">
+      <div class="actor-header">
+        <div class="actor-icon technician">🔧</div>
+        <div class="actor-title">
+          <h2>Technician</h2>
+          <p>Works on assigned issues and updates repair status</p>
+        </div>
+        <span class="actor-badge technician">Actor</span>
+      </div>
+      <div class="use-cases-grid">
+        <div class="use-case-card technician">
+          <div class="use-case-num technician">UC9</div>
+          <div class="use-case-body">
+            <h4>Login to Technician Dashboard</h4>
+            <p>Technicians log in to view their personalized dashboard showing only issues assigned to them.</p>
+          </div>
+        </div>
+        <div class="use-case-card technician">
+          <div class="use-case-num technician">UC10</div>
+          <div class="use-case-body">
+            <h4>View Assigned Issues</h4>
+            <p>See all issues assigned by the admin with full details including images, lab location, and priority.</p>
+          </div>
+        </div>
+        <div class="use-case-card technician">
+          <div class="use-case-num technician">UC11</div>
+          <div class="use-case-body">
+            <h4>Update Issue Status</h4>
+            <p>Mark assigned issues as In Progress or Resolved to keep the admin and students informed.</p>
+          </div>
+        </div>
+        <div class="use-case-card technician">
+          <div class="use-case-num technician">UC12</div>
+          <div class="use-case-body">
+            <h4>Add Repair Notes</h4>
+            <p>Document repair activities and add notes about the steps taken to resolve the lab issue.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SYSTEM USE CASES -->
+    <div class="actor-section">
+      <div class="actor-header">
+        <div class="actor-icon system">⚙️</div>
+        <div class="actor-title">
+          <h2>System</h2>
+          <p>Core backend operations that power the platform</p>
+        </div>
+        <span class="actor-badge system">System</span>
+      </div>
+      <div class="use-cases-grid">
+        <div class="use-case-card system">
+          <div class="use-case-num system">S1</div>
+          <div class="use-case-body">
+            <h4>Data Storage &amp; Management</h4>
+            <p>All issue reports, user data, and status updates are securely stored and managed in MongoDB.</p>
+          </div>
+        </div>
+        <div class="use-case-card system">
+          <div class="use-case-num system">S2</div>
+          <div class="use-case-body">
+            <h4>Authentication &amp; Authorization</h4>
+            <p>JWT-based secure authentication ensures only authorized users access their respective dashboards.</p>
+          </div>
+        </div>
+        <div class="use-case-card system">
+          <div class="use-case-num system">S3</div>
+          <div class="use-case-body">
+            <h4>Issue Lifecycle Management</h4>
+            <p>Automatically tracks and manages the complete lifecycle of every issue from submission to resolution.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <div class="footer">
+    <p>Lab Management System &copy; 2026 &nbsp;·&nbsp; <a href="index.html">Back to Home</a></p>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Management — Lab Issue Reporting System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet" />
+  <style>
+    /* ═══════════════════════════════════════════════
+       RESET & BASE
+    ═══════════════════════════════════════════════ */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #050d0a;
+      color: #e8f0ec;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ═══════════════════════════════════════════════
+       BACKGROUND — deep dark green with radial glow
+       Exactly matching Hashrails reference
+    ═══════════════════════════════════════════════ */
+    .page-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background: #050d0a;
+      overflow: hidden;
+    }
+
+    /* Central green radial spotlight — hero of the design */
+    .page-bg::before {
+      content: '';
+      position: absolute;
+      top: -15%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1000px;
+      height: 750px;
+      background: radial-gradient(ellipse at center,
+          rgba(18, 130, 82, 0.5) 0%,
+          rgba(10, 90, 55, 0.28) 30%,
+          rgba(5, 35, 20, 0.12) 60%,
+          transparent 80%);
+      pointer-events: none;
+    }
+
+    /* Bottom fade */
+    .page-bg::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 280px;
+      background: linear-gradient(to top, rgba(5, 13, 10, 0.9), transparent);
+      pointer-events: none;
+    }
+
+    /* Subtle dot grid overlay — matches reference */
+    .grid-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-image:
+        radial-gradient(circle, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+    }
+
+    .page-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ═══════════════════════════════════════════════
+       NAVBAR — glassmorphism, exactly like reference
+    ═══════════════════════════════════════════════ */
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 3rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background: rgba(5, 13, 10, 0.55);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    /* Logo — "lab" normal weight + "management" bold green */
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      text-decoration: none;
+    }
+
+    .nav-logo .logo-icon {
+      width: 30px;
+      height: 30px;
+      background: linear-gradient(135deg, #1de99b, #0fb870);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      box-shadow: 0 0 14px rgba(29, 233, 155, 0.35);
+    }
+
+    .nav-logo .logo-text {
+      font-size: 1.05rem;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      color: #e8f0ec;
+    }
+
+    .nav-logo .logo-text strong {
+      font-weight: 800;
+      color: #1de99b;
+    }
+
+    /* Center nav links */
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0.15rem;
+    }
+
+    .nav-links a {
+      color: rgba(232, 240, 236, 0.65);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 0.42rem 1rem;
+      border-radius: 8px;
+      transition: all 0.15s ease;
+    }
+
+    .nav-links a:hover {
+      color: #e8f0ec;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    /* Right side */
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      position: relative;
+    }
+
+    /* Sign In button — clean transparent with border */
+    .signin-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #e8f0ec;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 600;
+      padding: 0.48rem 1.1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .signin-btn:hover {
+      background: rgba(29, 233, 155, 0.08);
+      border-color: rgba(29, 233, 155, 0.4);
+      color: #1de99b;
+    }
+
+    .signin-btn .arrow {
+      font-size: 0.65rem;
+      transition: transform 0.2s ease;
+      opacity: 0.7;
+    }
+
+    .signin-btn.open .arrow {
+      transform: rotate(180deg);
+    }
+
+    /* Dropdown */
+    .signin-dropdown {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      width: 215px;
+      background: #0c1c14;
+      border: 1px solid rgba(29, 233, 155, 0.16);
+      border-radius: 14px;
+      padding: 0.45rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.65), 0 0 30px rgba(29, 233, 155, 0.07);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-8px);
+      transition: all 0.2s ease;
+      z-index: 200;
+    }
+
+    .signin-dropdown.open {
+      opacity: 1;
+      pointer-events: all;
+      transform: translateY(0);
+    }
+
+    .dropdown-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.28);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 0.4rem 0.75rem 0.2rem;
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.6rem 0.75rem;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      color: rgba(232, 240, 236, 0.8);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.865rem;
+      font-weight: 500;
+    }
+
+    .dropdown-item:hover {
+      background: rgba(29, 233, 155, 0.09);
+      color: #1de99b;
+    }
+
+    .d-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    .dropdown-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.05);
+      margin: 0.3rem 0;
+    }
+
+    /* ═══════════════════════════════════════════════
+       HERO — center stage, matches reference layout
+    ═══════════════════════════════════════════════ */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 7rem 2rem 5rem;
+      min-height: calc(100vh - 66px);
+    }
+
+    /* Live badge — blinking dot */
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(29, 233, 155, 0.07);
+      border: 1px solid rgba(29, 233, 155, 0.18);
+      border-radius: 20px;
+      padding: 0.32rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #1de99b;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+    }
+
+    .hero-badge .live-dot {
+      width: 6px;
+      height: 6px;
+      background: #1de99b;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #1de99b;
+      animation: blink 2s ease infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.25;
+      }
+    }
+
+    /* Main heading — big, bold, white */
+    .hero-heading {
+      font-size: clamp(2rem, 4.5vw, 3.4rem);
+      font-weight: 600;
+      line-height: 1.16;
+      letter-spacing: -0.02em;
+      color: #e8f0ec;
+      margin-bottom: 0.9rem;
+      max-width: 800px;
+    }
+
+    /* Gradient highlight line — teal to cyan like reference */
+    .hero-highlight {
+      display: block;
+      font-size: clamp(1.5rem, 3.5vw, 2.6rem);
+      font-weight: 600;
+      background: linear-gradient(90deg, #1de99b 0%, #00c4ff 55%, #1de99b 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.75rem;
+      animation: shimmer 4s linear infinite;
+    }
+
+    @keyframes shimmer {
+      from {
+        background-position: 0% center;
+      }
+
+      to {
+        background-position: 200% center;
+      }
+    }
+
+    /* Description */
+    .hero-desc {
+      font-size: 1rem;
+      font-weight: 400;
+      color: rgba(232, 240, 236, 0.5);
+      max-width: 580px;
+      line-height: 1.8;
+      margin-bottom: 2.75rem;
+    }
+
+    /* CTA — split button exactly like Hashrails */
+    .cta-wrap {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 3.5rem;
+    }
+
+    .btn-cta {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 28px rgba(29, 233, 155, 0.28), 0 8px 24px rgba(0, 0, 0, 0.4);
+      cursor: pointer;
+      transition: box-shadow 0.2s ease, transform 0.2s ease;
+      text-decoration: none;
+      border: none;
+      background: none;
+    }
+
+    .btn-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 45px rgba(29, 233, 155, 0.45), 0 12px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .btn-cta .cta-text {
+      background: linear-gradient(90deg, #1de99b, #0dd4a0);
+      color: #031a0d;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 0.8rem 1.6rem;
+      border: none;
+      cursor: pointer;
+      letter-spacing: 0.01em;
+    }
+
+    .btn-cta .cta-arrow {
+      background: #071f12;
+      color: #1de99b;
+      font-size: 1rem;
+      padding: 0.8rem 1rem;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-left: 1px solid rgba(0, 0, 0, 0.2);
+    }
+
+    /* Ghost secondary button */
+    .btn-ghost-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      color: rgba(232, 240, 236, 0.7);
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 0.9rem;
+      padding: 0.78rem 1.4rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn-ghost-cta:hover {
+      border-color: rgba(29, 233, 155, 0.28);
+      color: #1de99b;
+      background: rgba(29, 233, 155, 0.05);
+    }
+
+    /* Feature chips row */
+    .features-row {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      padding-bottom: 4rem;
+      flex-wrap: wrap;
+    }
+
+    .feature-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: rgba(232, 240, 236, 0.4);
+    }
+
+    .chip-dot {
+      width: 5px;
+      height: 5px;
+      background: #1de99b;
+      border-radius: 50%;
+      opacity: 0.65;
+      flex-shrink: 0;
+    }
+
+    /* ═══════════════════════════════════════════════
+       AUTH MODAL — glassmorphism card
+    ═══════════════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+      padding: 1rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .auth-modal {
+      background: #0b1a12;
+      border: 1px solid rgba(29, 233, 155, 0.13);
+      border-radius: 20px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 410px;
+      box-shadow:
+        0 0 80px rgba(29, 233, 155, 0.08),
+        0 30px 80px rgba(0, 0, 0, 0.75),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      transform: translateY(24px) scale(0.97);
+      transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Green glow top edge */
+    .auth-modal::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 20%;
+      right: 20%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(29, 233, 155, 0.5), transparent);
+    }
+
+    .modal-overlay.open .auth-modal {
+      transform: translateY(0) scale(1);
+    }
+
+    .modal-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.4rem;
+    }
+
+    .modal-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .modal-logo .m-icon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #1de99b, #0fb870);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      box-shadow: 0 0 10px rgba(29, 233, 155, 0.3);
+    }
+
+    .modal-logo .m-name {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #e8f0ec;
+      letter-spacing: -0.01em;
+    }
+
+    .modal-close {
+      width: 28px;
+      height: 28px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: rgba(232, 240, 236, 0.45);
+      font-size: 0.8rem;
+      transition: all 0.15s ease;
+    }
+
+    .modal-close:hover {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.25);
+      color: #ef4444;
+    }
+
+    /* Auth tabs */
+    .auth-tabs {
+      display: flex;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 10px;
+      padding: 3px;
+      margin-bottom: 1.3rem;
+      gap: 2px;
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 0.48rem;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 0.83rem;
+      cursor: pointer;
+      color: rgba(255, 255, 255, 0.85);
+      transition: all 0.15s ease;
+    }
+
+    .auth-tab.active {
+      background: rgba(29, 233, 155, 0.1);
+      color: #1de99b;
+      border: 1px solid rgba(29, 233, 155, 0.18);
+    }
+
+    /* Alert */
+    .auth-alert {
+      border-radius: 8px;
+      font-size: 0.83rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      display: none;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.6rem 0.85rem;
+    }
+
+    .auth-alert.error {
+      background: rgba(239, 68, 68, 0.09);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.18);
+      display: flex;
+    }
+
+    .auth-alert.success {
+      background: rgba(29, 233, 155, 0.09);
+      color: #1de99b;
+      border: 1px solid rgba(29, 233, 155, 0.18);
+      display: flex;
+    }
+
+    /* Form */
+    .form-group {
+      margin-bottom: 0.9rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.85);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 0.38rem;
+    }
+
+    .form-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 9px;
+      padding: 0.62rem 0.9rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      color: #e8f0ec;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .form-input:focus {
+      border-color: rgba(29, 233, 155, 0.4);
+      box-shadow: 0 0 0 3px rgba(29, 233, 155, 0.08);
+    }
+
+    .form-input::placeholder {
+      color: rgba(232, 240, 236, 0.18);
+    }
+
+    select.form-input {
+      cursor: pointer;
+    }
+
+    select.form-input option {
+      background: #0c1c14;
+    }
+
+    /* Login role cards */
+    .role-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.45rem;
+      margin-bottom: 1rem;
+    }
+
+    .role-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1.5px solid rgba(255, 255, 255, 0.07);
+      border-radius: 9px;
+      padding: 0.7rem 0.3rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+      position: relative;
+    }
+
+    .role-card:hover {
+      border-color: rgba(29, 233, 155, 0.3);
+      background: rgba(29, 233, 155, 0.04);
+    }
+
+    .role-card.selected {
+      border-color: #1de99b;
+      background: rgba(29, 233, 155, 0.07);
+      box-shadow: 0 0 0 3px rgba(29, 233, 155, 0.1);
+    }
+
+    .role-card .rc-icon {
+      font-size: 1.2rem;
+      margin-bottom: 0.28rem;
+      display: block;
+    }
+
+    .role-card .rc-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: rgba(232, 240, 236, 0.4);
+      display: block;
+      line-height: 1.3;
+    }
+
+    .role-card.selected .rc-label {
+      color: #1de99b;
+    }
+
+    .role-card.selected::after {
+      content: '✓';
+      position: absolute;
+      top: 4px;
+      right: 5px;
+      font-size: 0.5rem;
+      background: #1de99b;
+      color: #031a0d;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+
+    /* Portal banner */
+    .portal-banner {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 9px;
+      padding: 0.5rem 0.8rem;
+      margin-bottom: 0.9rem;
+      transition: all 0.2s ease;
+    }
+
+    .pb-icon {
+      font-size: 0.95rem;
+    }
+
+    .pb-text {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: rgba(232, 240, 236, 0.55);
+    }
+
+    .pb-sub {
+      font-size: 0.68rem;
+      color: rgba(232, 240, 236, 0.28);
+      margin-top: 1px;
+    }
+
+    .portal-banner.student {
+      border-color: rgba(29, 233, 155, 0.22);
+      background: rgba(29, 233, 155, 0.04);
+    }
+
+    .portal-banner.admin {
+      border-color: rgba(245, 158, 11, 0.22);
+      background: rgba(245, 158, 11, 0.04);
+    }
+
+    .portal-banner.technician {
+      border-color: rgba(20, 200, 200, 0.2);
+      background: rgba(20, 200, 200, 0.04);
+    }
+
+    .portal-banner.student .pb-text {
+      color: #1de99b;
+    }
+
+    .portal-banner.admin .pb-text {
+      color: #f59e0b;
+    }
+
+    .portal-banner.technician .pb-text {
+      color: #2dd4bf;
+    }
+
+    /* Signup role toggle */
+    .role-toggle {
+      display: flex;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 9px;
+      padding: 3px;
+      margin-bottom: 0.9rem;
+    }
+
+    .role-toggle button {
+      flex: 1;
+      padding: 0.42rem;
+      border: none;
+      background: transparent;
+      border-radius: 7px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 0.72rem;
+      cursor: pointer;
+      color: rgba(232, 240, 236, 0.3);
+      transition: all 0.15s ease;
+    }
+
+    .role-toggle button.active {
+      background: rgba(29, 233, 155, 0.1);
+      color: #1de99b;
+      border: 1px solid rgba(29, 233, 155, 0.18);
+    }
+
+    /* Submit button — gradient green like Hashrails CTA */
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(90deg, #1de99b, #0dd4a0);
+      color: #031a0d;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 0.78rem;
+      border: none;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 20px rgba(29, 233, 155, 0.28);
+      margin-top: 0.2rem;
+      letter-spacing: 0.01em;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 30px rgba(29, 233, 155, 0.42);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Switch link */
+    .auth-switch {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      color: rgba(232, 240, 236, 0.3);
+    }
+
+    .auth-switch a {
+      color: #1de99b;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .auth-switch a:hover {
+      text-decoration: underline;
+    }
+
+    /* ═══════════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 0.9rem 1.25rem;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .hero {
+        padding: 5rem 1.25rem 3rem;
+        min-height: calc(100vh - 58px);
+      }
+
+      .hero-heading {
+        font-size: 1.85rem;
+      }
+
+      .hero-highlight {
+        font-size: 1.4rem;
+      }
+
+      .features-row {
+        gap: 1rem;
+        padding-bottom: 3rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .auth-modal {
+        padding: 1.5rem;
+      }
+
+      .role-cards {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Background -->
+  <div class="page-bg"></div>
+  <div class="grid-overlay"></div>
+
+  <div class="page-content">
+
+    <!-- ══════════════════════════════════════
+       NAVBAR
+  ══════════════════════════════════════ -->
+    <nav class="navbar">
+
+      <!-- Logo: "lab" plain + "management" bold green -->
+      <a class="nav-logo" href="#">
+        <div class="logo-icon">🔬</div>
+        <span class="logo-text">Lab<strong>Management</strong></span>
+      </a>
+
+      <!-- Center: only Use Cases -->
+      <div class="nav-links">
+       <a href="usecases.html">HELP!</a>
+      </div>
+
+      <!-- Right: Sign In with dropdown -->
+      <div class="nav-right">
+        <button class="signin-btn" id="signinTrigger" onclick="toggleDropdown()">
+          Sign In <span class="arrow">▾</span>
+        </button>
+
+        <div class="signin-dropdown" id="signinDropdown">
+          <div class="dropdown-label">Sign in as</div>
+
+          <button class="dropdown-item" onclick="openLoginModal('student')">
+            <div class="d-icon" style="background:rgba(29,233,155,0.1);">🎓</div>
+            Student
+          </button>
+
+          <button class="dropdown-item" onclick="openLoginModal('admin')">
+            <div class="d-icon" style="background:rgba(245,158,11,0.1);">👔</div>
+            HOD / Admin
+          </button>
+
+          <button class="dropdown-item" onclick="openLoginModal('technician')">
+            <div class="d-icon" style="background:rgba(20,200,200,0.1);">🔧</div>
+            Technician
+          </button>
+
+          <div class="dropdown-divider"></div>
+
+          <button class="dropdown-item" onclick="openSignupModal()">
+            <div class="d-icon" style="background:rgba(255,255,255,0.05);">✨</div>
+            Create Account
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ══════════════════════════════════════
+       HERO
+  ══════════════════════════════════════ -->
+    <section class="hero">
+
+      <!-- Live badge -->
+      <div class="hero-badge">
+        <span class="live-dot"></span>
+        Real-Time Issue Tracking System
+      </div>
+
+      <!-- Main heading — two lines -->
+      <h1 class="hero-heading">
+        Report Issues. Get Them Fixed.
+      </h1>
+
+      <!-- Gradient highlight line -->
+      <span class="hero-highlight">
+        Real-Time Issue Tracking &amp; Resolution
+      </span>
+
+      <!-- Description -->
+      <p class="hero-desc">
+        Easily report computer lab issues with images and descriptions, track their status
+        in real-time, and enable administrators to manage and resolve problems efficiently —
+        all in one centralized platform.
+      </p>
+
+      <!-- CTA — split button like reference -->
+      <div class="cta-wrap">
+        <div class="btn-cta" onclick="openLoginModal('student')">
+          <span class="cta-text">Log In</span>
+          <span class="cta-arrow">›</span>
+        </div>
+
+        <button class="btn-ghost-cta" onclick="openSignupModal()">
+          Create Account →
+        </button>
+      </div>
+
+      <!-- Feature chips -->
+      <div class="features-row">
+        <div class="feature-chip"><span class="chip-dot"></span> Image Upload</div>
+        <div class="feature-chip"><span class="chip-dot"></span> Real-Time Status</div>
+        <div class="feature-chip"><span class="chip-dot"></span> Admin Dashboard</div>
+        <div class="feature-chip"><span class="chip-dot"></span> Priority Levels</div>
+        <div class="feature-chip"><span class="chip-dot"></span> Comments &amp; Remarks</div>
+      </div>
+
+    </section>
+
+  </div><!-- /page-content -->
+
+  <!-- ══════════════════════════════════════
+     AUTH MODAL
+══════════════════════════════════════ -->
+  <div class="modal-overlay" id="authModal" onclick="handleOverlayClick(event)">
+    <div class="auth-modal">
+
+      <!-- Modal top bar -->
+      <div class="modal-top">
+        <div class="modal-logo">
+          <div class="m-icon">🔬</div>
+          <span class="m-name">Lab<strong style="color:#1de99b;">Management</strong></span>
+        </div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+
+      <!-- Log In / Create Account tabs -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="loginTab" onclick="switchMode('login')">Log In</button>
+        <button class="auth-tab" id="signupTab" onclick="switchMode('signup')">Create Account</button>
+      </div>
+
+      <!-- Alert -->
+      <div class="auth-alert" id="authAlert"></div>
+
+      <!-- ─── LOGIN FORM ─── -->
+      <div id="loginForm">
+
+        <!-- Role selection cards -->
+        <div
+          style="font-size:0.7rem; font-weight:700; color:rgba(255,255,255,0.85); text-transform:uppercase; letter-spacing:0.07em; margin-bottom:0.4rem;">
+          Sign in as
+        </div>
+
+        <div class="role-cards">
+          <div class="role-card selected" id="rc-student" onclick="setLoginRole('student')">
+            <span class="rc-icon">🎓</span>
+            <span class="rc-label">Student</span>
+          </div>
+          <div class="role-card" id="rc-admin" onclick="setLoginRole('admin')">
+            <span class="rc-icon">👔</span>
+            <span class="rc-label">HOD / Admin</span>
+          </div>
+          <div class="role-card" id="rc-technician" onclick="setLoginRole('technician')">
+            <span class="rc-icon">🔧</span>
+            <span class="rc-label">Technician</span>
+          </div>
+        </div>
+
+        <!-- Dynamic portal banner -->
+        <div class="portal-banner student" id="portalBanner">
+          <span class="pb-icon">🎓</span>
+          <div>
+            <div class="pb-text">Student Portal</div>
+            <div class="pb-sub">Report and track your lab issues</div>
+          </div>
+        </div>
+
+        <input type="hidden" id="loginRole" value="student" />
+
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="loginEmail" class="form-input" placeholder="you@college.edu" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" id="loginPassword" class="form-input" placeholder="••••••••"
+            onkeydown="if(event.key==='Enter') submitLogin()" />
+        </div>
+
+        <button class="btn-submit" id="loginBtn" onclick="submitLogin()">Log In</button>
+
+        <div class="auth-switch">
+          Don't have an account? <a onclick="switchMode('signup')">Create one</a>
+        </div>
+      </div>
+
+      <!-- ─── SIGNUP FORM ─── -->
+      <div id="signupForm" style="display:none;">
+
+        <div class="form-group">
+          <label class="form-label">Register As</label>
+          <div class="role-toggle">
+            <button class="active" id="srole-student" onclick="setSignupRole('student')">🎓 Student</button>
+            <button id="srole-admin" onclick="setSignupRole('admin')">👔 Admin</button>
+            <button id="srole-technician" onclick="setSignupRole('technician')">🔧 Tech</button>
+          </div>
+          <input type="hidden" id="signupRole" value="student" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="signupName" class="form-input" placeholder="Your full name" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="signupEmail" class="form-input" placeholder="you@college.edu" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password
+            <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.68rem;opacity:0.6;">(min. 6
+              characters)</span>
+          </label>
+          <input type="password" id="signupPassword" class="form-input" placeholder="Create a password"
+            onkeydown="if(event.key==='Enter') submitSignup()" />
+        </div>
+
+        <button class="btn-submit" id="signupBtn" onclick="submitSignup()">Create Account</button>
+
+        <div class="auth-switch">
+          Already registered? <a onclick="switchMode('login')">Log in</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    // ── Redirect if already logged in ──────────────────────────
+    (() => {
+      const u = getUser();
+      if (u && getToken()) {
+        const pages = { admin: 'admin.html', student: 'student.html', technician: 'technician.html' };
+        window.location.href = pages[u.role] || 'index.html';
+      }
+    })();
+
+    // ── Dropdown ────────────────────────────────────────────────
+    function toggleDropdown() {
+      const btn = document.getElementById('signinTrigger');
+      const dd = document.getElementById('signinDropdown');
+      btn.classList.toggle('open');
+      dd.classList.toggle('open');
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.nav-right')) {
+        document.getElementById('signinTrigger').classList.remove('open');
+        document.getElementById('signinDropdown').classList.remove('open');
+      }
+    });
+
+    // ── Modal ────────────────────────────────────────────────────
+    function openLoginModal(role = 'student') {
+      closeDropdown();
+      switchMode('login');
+      setLoginRole(role);
+      document.getElementById('authModal').classList.add('open');
+    }
+
+    function openSignupModal() {
+      closeDropdown();
+      switchMode('signup');
+      document.getElementById('authModal').classList.add('open');
+    }
+
+    function closeDropdown() {
+      document.getElementById('signinTrigger').classList.remove('open');
+      document.getElementById('signinDropdown').classList.remove('open');
+    }
+
+    function closeModal() {
+      document.getElementById('authModal').classList.remove('open');
+      clearAlert();
+    }
+
+    function handleOverlayClick(e) {
+      if (e.target === e.currentTarget) closeModal();
+    }
+
+    // ── Mode switch ──────────────────────────────────────────────
+    function switchMode(mode) {
+      document.getElementById('loginTab').classList.toggle('active', mode === 'login');
+      document.getElementById('signupTab').classList.toggle('active', mode === 'signup');
+      document.getElementById('loginForm').style.display = mode === 'login' ? 'block' : 'none';
+      document.getElementById('signupForm').style.display = mode === 'signup' ? 'block' : 'none';
+      clearAlert();
+    }
+
+    // ── Role config ──────────────────────────────────────────────
+    const ROLES = {
+      student: { icon: '🎓', label: 'Student Portal', sub: 'Report and track your lab issues', cls: 'student' },
+      admin: { icon: '👔', label: 'HOD / Admin Portal', sub: 'Manage and resolve all lab issues', cls: 'admin' },
+      technician: { icon: '🔧', label: 'Technician Portal', sub: 'View and work on assigned issues', cls: 'technician' }
+    };
+
+    function setLoginRole(role) {
+      document.getElementById('loginRole').value = role;
+      ['student', 'admin', 'technician'].forEach(r =>
+        document.getElementById('rc-' + r).classList.toggle('selected', r === role)
+      );
+      const cfg = ROLES[role];
+      const b = document.getElementById('portalBanner');
+      b.className = `portal-banner ${cfg.cls}`;
+      b.innerHTML = `<span class="pb-icon">${cfg.icon}</span><div><div class="pb-text">${cfg.label}</div><div class="pb-sub">${cfg.sub}</div></div>`;
+      clearAlert();
+    }
+
+    function setSignupRole(role) {
+      document.getElementById('signupRole').value = role;
+      ['student', 'admin', 'technician'].forEach(r =>
+        document.getElementById('srole-' + r).classList.toggle('active', r === role)
+      );
+    }
+
+    // ── Alert ────────────────────────────────────────────────────
+    function showAlert(msg, type = 'error') {
+      const el = document.getElementById('authAlert');
+      el.className = `auth-alert ${type}`;
+      el.innerHTML = `<span>${type === 'error' ? '⚠' : '✓'}</span> ${msg}`;
+    }
+
+    function clearAlert() {
+      const el = document.getElementById('authAlert');
+      el.className = 'auth-alert';
+      el.innerHTML = '';
+    }
+
+    function setLoading(id, loading, text) {
+      const btn = document.getElementById(id);
+      btn.disabled = loading;
+      btn.textContent = loading ? 'Please wait...' : text;
+    }
+
+    // ── Login ────────────────────────────────────────────────────
+    async function submitLogin() {
+      clearAlert();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const role = document.getElementById('loginRole').value;
+
+      if (!email || !password) { showAlert('Please fill in all fields.'); return; }
+
+      try {
+        setLoading('loginBtn', true, 'Log In');
+        const data = await Auth.login(email, password);
+
+        // Role mismatch protection
+        if (data.user.role !== role) {
+          showAlert(`This account is registered as "${data.user.role}". Please select the correct role above.`);
+          return;
+        }
+
+        saveToken(data.token);
+        saveUser(data.user);
+        window.location.href = data.user.role === 'admin' ? 'admin.html' : 'student.html';
+      } catch (err) {
+        showAlert(err.message);
+      } finally {
+        setLoading('loginBtn', false, 'Log In');
+      }
+    }
+
+    // ── Signup ───────────────────────────────────────────────────
+    async function submitSignup() {
+      clearAlert();
+      const name = document.getElementById('signupName').value.trim();
+      const email = document.getElementById('signupEmail').value.trim();
+      const password = document.getElementById('signupPassword').value;
+      const role = document.getElementById('signupRole').value;
+
+      if (!name || !email || !password) { showAlert('Please fill in all fields.'); return; }
+      if (password.length < 6) { showAlert('Password must be at least 6 characters.'); return; }
+
+      try {
+        setLoading('signupBtn', true, 'Create Account');
+        await Auth.signup(name, email, password, role);
+
+        // Reset form
+        document.getElementById('signupName').value = '';
+        document.getElementById('signupEmail').value = '';
+        document.getElementById('signupPassword').value = '';
+        setSignupRole('student');
+
+        // Switch to login with success message
+        switchMode('login');
+        showAlert('Account created successfully! Please log in to continue.', 'success');
+      } catch (err) {
+        showAlert(err.message);
+      } finally {
+        setLoading('signupBtn', false, 'Create Account');
+      }
+    }
+  </script>
+</body>
+
+</html>

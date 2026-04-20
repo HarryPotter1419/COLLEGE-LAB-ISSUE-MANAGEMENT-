@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard — Lab Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #080d0a;
+      color: #ffffff;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+    }
+
+    /* ── SIDEBAR ─────────────────────────────────────────────── */
+    .sidebar {
+      width: 240px;
+      background: #050805;
+      border-right: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      z-index: 50;
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 1.4rem 1.25rem 1.2rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .brand-logo {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, #1de99b, #0fb870);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; flex-shrink: 0;
+      box-shadow: 0 0 16px rgba(29,233,155,0.3);
+    }
+
+    .brand-name { font-size: 0.9rem; font-weight: 400; color: #ffffff; }
+    .brand-name strong { font-weight: 800; color: #1de99b; }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 1rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .nav-section-label {
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.2);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 0.6rem 0.75rem 0.3rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.6rem 0.85rem;
+      border-radius: 8px;
+      color: rgba(255,255,255,0.45);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      text-decoration: none;
+      position: relative;
+    }
+
+    .nav-item:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.05); text-decoration: none; }
+    .nav-item.active { color: #1de99b; background: rgba(29,233,155,0.08); border: 1px solid rgba(29,233,155,0.15); }
+    .nav-item .n-icon { width: 16px; text-align: center; font-size: 0.85rem; }
+
+    .nav-badge {
+      margin-left: auto;
+      background: #ef4444;
+      color: #fff;
+      font-size: 0.62rem;
+      font-weight: 700;
+      padding: 0.1rem 0.42rem;
+      border-radius: 10px;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .sidebar-user {
+      padding: 0.9rem 1rem;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .u-avatar {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 700; color: #fff;
+      flex-shrink: 0;
+    }
+
+    .u-name { font-size: 0.82rem; font-weight: 600; color: #ffffff; }
+    .u-role { font-size: 0.68rem; color: rgba(255,255,255,0.3); margin-top: 1px; }
+
+    .u-logout {
+      margin-left: auto;
+      background: none; border: none;
+      color: rgba(255,255,255,0.25);
+      cursor: pointer; font-size: 0.95rem;
+      padding: 4px; border-radius: 6px;
+      transition: color 0.15s ease;
+    }
+    .u-logout:hover { color: #ef4444; }
+
+    /* ── MAIN WRAP ───────────────────────────────────────────── */
+    .main-wrap {
+      margin-left: 240px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      height: 60px;
+      background: #050805;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      align-items: center;
+      padding: 0 1.75rem;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .topbar-title { font-size: 0.9rem; font-weight: 600; color: rgba(255,255,255,0.5); }
+
+    .topbar-right { display: flex; align-items: center; gap: 0.65rem; margin-left: auto; }
+
+    .topbar-user-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 0.28rem 0.85rem 0.28rem 0.35rem;
+    }
+
+    .chip-avatar {
+      width: 24px; height: 24px;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.62rem; font-weight: 700; color: #fff;
+    }
+
+    .chip-name { font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.8); }
+
+    .role-pill {
+      background: rgba(245,158,11,0.1);
+      border: 1px solid rgba(245,158,11,0.2);
+      color: #f59e0b;
+      font-size: 0.65rem; font-weight: 700;
+      padding: 0.18rem 0.55rem;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .btn-signout {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.5);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78rem; font-weight: 500;
+      padding: 0.35rem 0.85rem;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-signout:hover { border-color: rgba(239,68,68,0.4); color: #ef4444; }
+
+    .main-content { flex: 1; padding: 1.75rem; background: #080d0a; }
+
+    /* ── PAGE HEADER ─────────────────────────────────────────── */
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .page-header h1 { font-size: 1.5rem; font-weight: 700; color: #ffffff; letter-spacing: -0.02em; }
+    .page-header p  { font-size: 0.82rem; color: rgba(255,255,255,0.35); margin-top: 0.2rem; }
+
+    /* ── STAT CARDS ──────────────────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: #0d1410;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px;
+      padding: 1.1rem 1.2rem;
+      transition: border-color 0.15s ease, transform 0.15s ease;
+    }
+
+    .stat-card:hover { border-color: rgba(29,233,155,0.2); transform: translateY(-2px); }
+
+    .stat-icon-box {
+      width: 36px; height: 36px;
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.95rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .stat-icon-box.green  { background: rgba(29,233,155,0.1); }
+    .stat-icon-box.yellow { background: rgba(245,158,11,0.1); }
+    .stat-icon-box.blue   { background: rgba(59,130,246,0.1); }
+    .stat-icon-box.teal   { background: rgba(20,184,166,0.1); }
+    .stat-icon-box.red    { background: rgba(239,68,68,0.1);  }
+    .stat-icon-box.purple { background: rgba(124,106,247,0.1);}
+
+    .stat-num {
+      font-size: 1.9rem; font-weight: 800;
+      color: #ffffff; line-height: 1;
+      letter-spacing: -0.03em; margin-bottom: 0.3rem;
+    }
+
+    .stat-num.yellow { color: #f59e0b; }
+    .stat-num.blue   { color: #3b9eff; }
+    .stat-num.teal   { color: #1de99b; }
+    .stat-num.red    { color: #f87171; }
+
+    .stat-label {
+      font-size: 0.72rem; font-weight: 500;
+      color: rgba(255,255,255,0.3);
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+
+    /* ── SECTION CARD ────────────────────────────────────────── */
+    .section-card {
+      background: #0d1410;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 1.25rem;
+    }
+
+    .section-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.4rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .section-card-head h3 { font-size: 0.95rem; font-weight: 700; color: #ffffff; }
+    .section-card-head p  { font-size: 0.75rem; color: rgba(255,255,255,0.3); margin-top: 0.1rem; }
+
+    /* ── FILTER BAR ──────────────────────────────────────────── */
+    .filter-bar {
+      display: flex;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+      align-items: center;
+      padding: 1rem 1.4rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .filter-label {
+      font-size: 0.78rem; font-weight: 600;
+      color: rgba(255,255,255,0.35);
+      display: flex; align-items: center; gap: 0.35rem;
+    }
+
+    .filter-count {
+      margin-left: auto;
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.25);
+    }
+
+    /* ── TABLE ───────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+
+    thead tr { border-bottom: 1px solid rgba(255,255,255,0.06); }
+
+    th {
+      padding: 0.75rem 1.25rem;
+      text-align: left;
+      font-size: 0.7rem; font-weight: 600;
+      color: rgba(255,255,255,0.28);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 0.9rem 1.25rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.85);
+      vertical-align: middle;
+    }
+
+    tbody tr { transition: background 0.12s ease; }
+    tbody tr:hover { background: rgba(255,255,255,0.02); }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .issue-id { color: #1de99b; font-weight: 700; font-size: 0.78rem; letter-spacing: 0.02em; }
+
+    .student-cell .s-name { font-weight: 600; color: #ffffff; font-size: 0.875rem; }
+    .student-cell .s-email { font-size: 0.72rem; color: rgba(255,255,255,0.3); margin-top: 2px; }
+
+    .desc-cell {
+      max-width: 200px; overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap;
+      font-weight: 500; color: rgba(255,255,255,0.8);
+    }
+
+    .sys-pill {
+      display: inline-flex;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 5px;
+      padding: 0.18rem 0.55rem;
+      font-size: 0.72rem; font-weight: 600;
+      color: rgba(255,255,255,0.75);
+    }
+
+    .assigned-cell { font-size: 0.8rem; color: #1de99b; }
+    .unassigned-cell { font-size: 0.8rem; color: rgba(255,255,255,0.2); }
+
+    /* ── BADGES ──────────────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.28rem;
+      padding: 0.25rem 0.7rem;
+      border-radius: 20px;
+      font-size: 0.72rem; font-weight: 600;
+      white-space: nowrap;
+      border: 1px solid transparent;
+    }
+
+    .badge-pending   { background: rgba(245,158,11,0.1);  color: #f59e0b; border-color: rgba(245,158,11,0.2);  }
+    .badge-progress  { background: rgba(59,158,255,0.1);  color: #3b9eff; border-color: rgba(59,158,255,0.2);  }
+    .badge-resolved  { background: rgba(29,233,155,0.1);  color: #1de99b; border-color: rgba(29,233,155,0.2);  }
+    .badge-high      { background: rgba(239,68,68,0.1);   color: #f87171; border-color: rgba(239,68,68,0.2);   }
+    .badge-medium    { background: rgba(245,158,11,0.1);  color: #f59e0b; border-color: rgba(245,158,11,0.2);  }
+    .badge-low       { background: rgba(29,233,155,0.1);  color: #1de99b; border-color: rgba(29,233,155,0.2);  }
+
+    .badge-pending::before  { content: '⊙'; font-size: 0.68rem; }
+    .badge-progress::before { content: '◔'; font-size: 0.68rem; display: inline-block; animation: spin 2s linear infinite; }
+    .badge-resolved::before { content: '✓'; }
+    .badge-high::before     { content: '↑'; font-weight: 800; }
+    .badge-medium::before   { content: '~'; font-weight: 800; }
+    .badge-low::before      { content: '↓'; font-weight: 800; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── BUTTONS ─────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center; justify-content: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1.1rem;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600; font-size: 0.84rem;
+      cursor: pointer; border: none;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, #1de99b, #0dd4a0);
+      color: #031a0d;
+      box-shadow: 0 4px 16px rgba(29,233,155,0.25);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(29,233,155,0.4); }
+
+    .btn-ghost {
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.5);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .btn-ghost:hover { color: #ffffff; border-color: rgba(255,255,255,0.18); }
+
+    .btn-sm { padding: 0.32rem 0.75rem; font-size: 0.76rem; border-radius: 6px; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+    /* ── FORM CONTROLS ───────────────────────────────────────── */
+    .form-group { margin-bottom: 1rem; }
+
+    .form-label {
+      display: block;
+      font-size: 0.72rem; font-weight: 600;
+      color: rgba(255,255,255,0.38);
+      text-transform: uppercase; letter-spacing: 0.07em;
+      margin-bottom: 0.38rem;
+    }
+
+    .form-control {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 0.6rem 0.85rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem; color: #ffffff;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .form-control:focus {
+      border-color: rgba(29,233,155,0.4);
+      box-shadow: 0 0 0 3px rgba(29,233,155,0.08);
+    }
+
+    .form-control::placeholder { color: rgba(255,255,255,0.18); }
+    textarea.form-control { resize: vertical; min-height: 80px; }
+    select.form-control { cursor: pointer; }
+    select.form-control option { background: #0d1410; }
+
+    .filter-control {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 7px;
+      padding: 0.42rem 0.75rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem; color: rgba(255,255,255,0.7);
+      outline: none;
+      transition: border-color 0.15s ease;
+      cursor: pointer;
+    }
+
+    .filter-control:focus { border-color: rgba(29,233,155,0.35); }
+    .filter-control option { background: #0d1410; }
+
+    /* ── PAGINATION ──────────────────────────────────────────── */
+    .pagination {
+      display: flex; gap: 0.4rem;
+      justify-content: center;
+      padding: 1rem 1.25rem;
+    }
+
+    /* ── MODAL ───────────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 999; padding: 1rem;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.active { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: #0d1410;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 1.75rem;
+      width: 100%; max-width: 580px;
+      max-height: 90vh; overflow-y: auto;
+      transform: translateY(16px) scale(0.98);
+      transition: transform 0.22s ease;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+      position: relative;
+    }
+
+    .modal::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 20%; right: 20%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(29,233,155,0.4), transparent);
+    }
+
+    .modal-overlay.active .modal { transform: translateY(0) scale(1); overflow-y: auto; }
+
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.25rem; padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .modal-header h3 { font-size: 1rem; font-weight: 700; color: #ffffff; }
+
+    .modal-close {
+      width: 28px; height: 28px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: rgba(255,255,255,0.4); font-size: 0.8rem;
+      transition: all 0.15s ease;
+    }
+    .modal-close:hover { background: rgba(239,68,68,0.1); color: #ef4444; border-color: rgba(239,68,68,0.25); }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 0.6rem; margin-bottom: 1rem;
+    }
+
+    .meta-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px; padding: 0.6rem 0.8rem;
+    }
+
+    .meta-item .label {
+      font-size: 0.65rem; font-weight: 700;
+      color: rgba(255,255,255,0.28);
+      text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.28rem;
+    }
+
+    .meta-item .value { font-size: 0.85rem; font-weight: 600; color: #ffffff; }
+
+    .issue-description-box {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px; padding: 0.85rem;
+      font-size: 0.875rem; color: rgba(255,255,255,0.65);
+      line-height: 1.65; margin-bottom: 1rem;
+      white-space: pre-wrap;
+    }
+
+    .issue-image {
+      border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);
+      max-height: 220px; width: 100%;
+      object-fit: cover; margin-bottom: 1rem;
+    }
+
+    .section-divider { border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 1rem 0; }
+
+    /* Comments */
+    .comments-thread {
+      display: flex; flex-direction: column; gap: 0.5rem;
+      max-height: 200px; overflow-y: auto;
+      padding-right: 2px; margin-bottom: 0.6rem;
+    }
+
+    .comment-bubble {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px; padding: 0.6rem 0.8rem;
+    }
+
+    .comment-bubble.admin-comment {
+      background: rgba(29,233,155,0.04);
+      border-color: rgba(29,233,155,0.15);
+    }
+
+    .comment-meta { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.28rem; }
+    .comment-author { font-size: 0.78rem; font-weight: 700; color: #ffffff; }
+
+    .comment-role {
+      font-size: 0.62rem; font-weight: 700;
+      padding: 0.08rem 0.38rem; border-radius: 10px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .comment-role.student    { background: rgba(29,233,155,0.1); color: #1de99b; }
+    .comment-role.admin      { background: rgba(245,158,11,0.1); color: #f59e0b; }
+    .comment-role.technician { background: rgba(20,184,166,0.1); color: #2dd4bf; }
+
+    .comment-time { font-size: 0.65rem; color: rgba(255,255,255,0.2); margin-left: auto; }
+    .comment-text { font-size: 0.84rem; color: rgba(255,255,255,0.55); line-height: 1.5; }
+
+    .comment-input-row { display: flex; gap: 0.5rem; }
+    .comment-input-row .form-control { flex: 1; padding: 0.5rem 0.75rem; }
+
+    /* Alert */
+    .alert {
+      padding: 0.65rem 0.9rem; border-radius: 8px;
+      font-size: 0.84rem; font-weight: 500;
+      margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;
+    }
+    .alert-error   { background: rgba(239,68,68,0.08);  color: #f87171; border: 1px solid rgba(239,68,68,0.18); }
+    .alert-success { background: rgba(29,233,155,0.08); color: #1de99b; border: 1px solid rgba(29,233,155,0.18); }
+
+    /* Toast */
+    .toast-container {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem;
+    }
+
+    .toast {
+      padding: 0.7rem 1.1rem;
+      background: #0d1410; border: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.85); border-radius: 8px;
+      font-size: 0.84rem; font-weight: 500;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+      animation: toastIn 0.25s ease;
+      display: flex; align-items: center; gap: 0.5rem;
+      min-width: 220px;
+    }
+
+    .toast.success { background: rgba(29,233,155,0.08); border-color: rgba(29,233,155,0.2); color: #1de99b; }
+    .toast.error   { background: rgba(239,68,68,0.08);  border-color: rgba(239,68,68,0.2);  color: #f87171; }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Empty state */
+    .empty-state { text-align: center; padding: 3rem 1rem; color: rgba(255,255,255,0.2); }
+    .empty-state .e-icon { font-size: 2.2rem; margin-bottom: 0.65rem; opacity: 0.4; display: block; }
+    .empty-state p { font-size: 0.875rem; }
+
+    /* Spinner */
+    .spinner {
+      width: 22px; height: 22px;
+      border: 2px solid rgba(255,255,255,0.08);
+      border-top-color: #1de99b;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+      margin: 0 auto;
+    }
+    .loading-row td { text-align: center; padding: 2.5rem !important; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #080d0a; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+
+    /* Student avatar */
+    .s-avatar {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, #1de99b, #0fb870);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.68rem; font-weight: 700; color: #031a0d;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .main-wrap { margin-left: 0; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════ SIDEBAR ═══════ -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">🔬</div>
+    <span class="brand-name">lab<strong>management</strong></span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Overview</div>
+    <a class="nav-item active" id="nav-dashboard" onclick="showSection('dashboard')" href="#">
+      <span class="n-icon">📊</span> Dashboard
+    </a>
+
+    <div class="nav-section-label" style="margin-top:0.5rem;">Management</div>
+    <a class="nav-item" id="nav-issues" onclick="showSection('issues')" href="#">
+      <span class="n-icon">📋</span> All Issues
+      <span class="nav-badge" id="pendingBadge" style="display:none;"></span>
+    </a>
+    <a class="nav-item" id="nav-students" onclick="showSection('students')" href="#">
+      <span class="n-icon">👥</span> Students
+    </a>
+  </nav>
+
+  <div class="sidebar-user">
+    <div class="u-avatar" id="sidebarAvatar">?</div>
+    <div>
+      <div class="u-name" id="sidebarName">Loading...</div>
+      <div class="u-role">HOD / Admin</div>
+    </div>
+    <button class="u-logout" onclick="Auth.logout()" title="Log out">↪</button>
+  </div>
+</aside>
+
+<!-- ═══════ MAIN WRAP ═══════ -->
+<div class="main-wrap">
+
+  <div class="topbar">
+    <span class="topbar-title" id="topbarTitle">Dashboard</span>
+    <div class="topbar-right">
+      <div class="topbar-user-chip">
+        <div class="chip-avatar" id="topAvatar">?</div>
+        <span class="chip-name" id="topName">Loading...</span>
+      </div>
+      <span class="role-pill">Admin</span>
+      <button class="btn-signout" onclick="Auth.logout()">Log Out</button>
+    </div>
+  </div>
+
+  <div class="main-content">
+
+    <!-- ══════ DASHBOARD SECTION ══════ -->
+    <section id="section-dashboard">
+      <div class="page-header">
+        <div>
+          <h1>Admin Dashboard</h1>
+          <p>Manage and monitor all lab issues in real-time</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadStats(); loadRecentIssues();">↻ Refresh</button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon-box green">📊</div>
+          <div class="stat-num" id="s-total">—</div>
+          <div class="stat-label">Total Issues</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon-box yellow">⏳</div>
+          <div class="stat-num yellow" id="s-pending">—</div>
+          <div class="stat-label">Pending</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon-box blue">⚙️</div>
+          <div class="stat-num blue" id="s-progress">—</div>
+          <div class="stat-label">In Progress</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon-box teal">✅</div>
+          <div class="stat-num teal" id="s-resolved">—</div>
+          <div class="stat-label">Resolved</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon-box red">🔴</div>
+          <div class="stat-num red" id="s-high">—</div>
+          <div class="stat-label">High Priority</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon-box purple">👥</div>
+          <div class="stat-num" id="s-students">—</div>
+          <div class="stat-label">Students</div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-card-head">
+          <div>
+            <h3>Recent Issues</h3>
+            <p>Latest reported issues across all labs</p>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="showSection('issues')">View All →</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Issue ID</th><th>Student</th><th>Description</th>
+                <th>Lab</th><th>Priority</th><th>Status</th><th>Time</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="recentBody">
+              <tr class="loading-row"><td colspan="8"><div class="spinner"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ ALL ISSUES SECTION ══════ -->
+    <section id="section-issues" style="display:none;">
+      <div class="page-header">
+        <div>
+          <h1>All Issues</h1>
+          <p>Filter, assign and manage lab issues</p>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="filter-bar">
+          <span class="filter-label">⚙ Filters:</span>
+          <input type="text" class="filter-control" id="fSearch"
+            placeholder="Search description..." style="flex:1; min-width:160px;"
+            onkeydown="if(event.key==='Enter') loadAllIssues()"/>
+          <select class="filter-control" id="fStatus">
+            <option value="">All Statuses</option>
+            <option>Pending</option><option>In Progress</option><option>Resolved</option>
+          </select>
+          <select class="filter-control" id="fPriority">
+            <option value="">All Priorities</option>
+            <option>High</option><option>Medium</option><option>Low</option>
+          </select>
+          <select class="filter-control" id="fLab">
+            <option value="">All Labs</option>
+            <option>SL1 LAB</option>
+            <option>SL2 LAB</option>
+            <option>SL3 LAB</option>
+            <option>PG LAB</option>
+            <option>CG LAB</option>
+            <option>PL LAB</option>
+            <option>Other</option>
+            <option>Lab 4</option><option>Lab 5</option><option>Server Room</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="loadAllIssues()">Apply</button>
+          <button class="btn btn-ghost btn-sm" onclick="resetFilters()">Reset</button>
+          <span class="filter-count" id="issueCount"></span>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Issue ID</th><th>Student</th><th>Description</th><th>Lab</th>
+                <th>Priority</th><th>Status</th><th>Assigned</th><th>Submitted</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="allIssuesBody">
+              <tr class="loading-row"><td colspan="9"><div class="spinner"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </section>
+
+    <!-- ══════ STUDENTS SECTION ══════ -->
+    <section id="section-students" style="display:none;">
+      <div class="page-header">
+        <div>
+          <h1>Registered Students</h1>
+          <p>All students signed up on the portal</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadStudents()">↻ Refresh</button>
+      </div>
+
+      <div class="section-card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Name</th><th>Email</th><th>Registered</th></tr>
+            </thead>
+            <tbody id="studentsBody">
+              <tr class="loading-row"><td colspan="4"><div class="spinner"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- ═══════ MANAGE MODAL ═══════ -->
+<div class="modal-overlay" id="manageModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Manage Issue</h3>
+      <button class="modal-close" onclick="closeModal('manageModal')">✕</button>
+    </div>
+    <div id="manageContent"><div class="spinner" style="margin:2rem auto;"></div></div>
+  </div>
+</div>
+
+<div class="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script>
+  const user = requireAuth('admin');
+  if (user) {
+    document.getElementById('sidebarAvatar').textContent = userInitials(user.name);
+    document.getElementById('sidebarName').textContent   = user.name;
+    document.getElementById('topAvatar').textContent     = userInitials(user.name);
+    document.getElementById('topName').textContent       = user.name;
+  }
+
+  let currentPage  = 1;
+  let technicians  = [];
+
+  // ── Section nav ─────────────────────────────────────────────
+  function showSection(name) {
+    document.querySelectorAll('[id^="section-"]').forEach(s => s.style.display = 'none');
+    document.getElementById('section-' + name).style.display = 'block';
+    document.querySelectorAll('.nav-item').forEach(a =>
+      a.classList.toggle('active', a.id === 'nav-' + name)
+    );
+    const titles = { dashboard:'Dashboard', issues:'All Issues', students:'Students' };
+    document.getElementById('topbarTitle').textContent = titles[name] || '';
+    if (name === 'dashboard') { loadStats(); loadRecentIssues(); }
+    if (name === 'issues')    { loadStats(); loadAllIssues(); loadTechnicians(); }
+    if (name === 'students')  { loadStudents(); }
+  }
+
+  // ── Stats ────────────────────────────────────────────────────
+  async function loadStats() {
+    try {
+      const s = await Admin.getStats();
+      document.getElementById('s-total').textContent    = s.total;
+      document.getElementById('s-pending').textContent  = s.pending;
+      document.getElementById('s-progress').textContent = s.inProgress;
+      document.getElementById('s-resolved').textContent = s.resolved;
+      document.getElementById('s-high').textContent     = s.high;
+      document.getElementById('s-students').textContent = s.totalStudents;
+      const badge = document.getElementById('pendingBadge');
+      badge.textContent    = s.pending;
+      badge.style.display  = s.pending > 0 ? 'inline-block' : 'none';
+    } catch (err) { showToast('Stats error: ' + err.message, 'error'); }
+  }
+
+  // ── Technicians ──────────────────────────────────────────────
+  async function loadTechnicians() {
+    try { const { technicians: t } = await Admin.getTechnicians(); technicians = t; }
+    catch { technicians = []; }
+  }
+
+  function technicianOptions(selectedId) {
+    return `<option value="">— Unassigned —</option>` +
+      technicians.map(t =>
+        `<option value="${t._id}" ${selectedId === t._id ? 'selected' : ''}>${t.name}</option>`
+      ).join('');
+  }
+
+  // ── Recent issues ────────────────────────────────────────────
+  async function loadRecentIssues() {
+    const tbody = document.getElementById('recentBody');
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="8"><div class="spinner"></div></td></tr>';
+    try {
+      const { issues } = await Admin.getIssues({ page: 1, limit: 6 });
+      if (!issues.length) {
+        tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><span class="e-icon">📭</span><p>No issues yet.</p></div></td></tr>`;
+        return;
+      }
+      let c = 1;
+      tbody.innerHTML = issues.map(issue => `
+        <tr>
+          <td><span class="issue-id">ISS-${String(c++).padStart(3,'0')}</span></td>
+          <td>
+            <div class="student-cell">
+              <div class="s-name">${issue.student?.name || 'N/A'}</div>
+              <div class="s-email">${issue.student?.email || ''}</div>
+            </div>
+          </td>
+          <td><div class="desc-cell" title="${issue.description}">${issue.description}</div></td>
+          <td style="font-size:0.82rem; color:rgba(255,255,255,0.55);">${issue.labNumber}</td>
+          <td>${priorityBadge(issue.priority)}</td>
+          <td>${statusBadge(issue.status)}</td>
+          <td style="font-size:0.75rem; color:rgba(255,255,255,0.3);">${timeAgo(issue.createdAt)}</td>
+          <td><button class="btn btn-primary btn-sm" onclick="openManageModal('${issue._id}')">Manage</button></td>
+        </tr>`).join('');
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="8"><div class="alert alert-error" style="margin:1rem;">⚠ ${err.message}</div></td></tr>`;
+    }
+  }
+
+  // ── All issues ───────────────────────────────────────────────
+  async function loadAllIssues(page = 1) {
+    currentPage = page;
+    const tbody = document.getElementById('allIssuesBody');
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="9"><div class="spinner"></div></td></tr>';
+    try {
+      const data = await Admin.getIssues({
+        status:   document.getElementById('fStatus').value,
+        priority: document.getElementById('fPriority').value,
+        lab:      document.getElementById('fLab').value,
+        search:   document.getElementById('fSearch').value.trim(),
+        page
+      });
+      document.getElementById('issueCount').textContent =
+        `${data.total} issue${data.total !== 1 ? 's' : ''}`;
+
+      if (!data.issues.length) {
+        tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><span class="e-icon">🔍</span><p>No issues match your filters.</p></div></td></tr>`;
+        document.getElementById('pagination').innerHTML = '';
+        return;
+      }
+
+      let c = (page - 1) * 10 + 1;
+      tbody.innerHTML = data.issues.map(issue => `
+        <tr>
+          <td><span class="issue-id">ISS-${String(c++).padStart(3,'0')}</span></td>
+          <td>
+            <div class="student-cell">
+              <div class="s-name">${issue.student?.name || 'N/A'}</div>
+              <div class="s-email">${issue.student?.email || ''}</div>
+            </div>
+          </td>
+          <td><div class="desc-cell" title="${issue.description}">${issue.description}</div></td>
+          <td>
+            <div style="font-size:0.82rem; color:rgba(255,255,255,0.55);">${issue.labNumber}</div>
+            <div class="sys-pill">${issue.systemNumber}</div>
+          </td>
+          <td>${priorityBadge(issue.priority)}</td>
+          <td>${statusBadge(issue.status)}</td>
+          <td>${issue.assignedTo
+            ? `<span class="assigned-cell">🔧 ${issue.assignedTo.name}</span>`
+            : `<span class="unassigned-cell">—</span>`}</td>
+          <td style="font-size:0.75rem; color:rgba(255,255,255,0.3);">${timeAgo(issue.createdAt)}</td>
+          <td><button class="btn btn-primary btn-sm" onclick="openManageModal('${issue._id}')">Manage</button></td>
+        </tr>`).join('');
+
+      // Pagination
+      const pg = document.getElementById('pagination');
+      if (data.totalPages <= 1) { pg.innerHTML = ''; return; }
+      pg.innerHTML = Array.from({ length: data.totalPages }, (_, i) =>
+        `<button class="btn btn-sm ${i+1===page ? 'btn-primary' : 'btn-ghost'}"
+          onclick="loadAllIssues(${i+1})">${i+1}</button>`
+      ).join('');
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="9"><div class="alert alert-error" style="margin:1rem;">⚠ ${err.message}</div></td></tr>`;
+    }
+  }
+
+  function resetFilters() {
+    ['fStatus','fPriority','fLab'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('fSearch').value = '';
+    loadAllIssues();
+  }
+
+  // ── Students ─────────────────────────────────────────────────
+  async function loadStudents() {
+    const tbody = document.getElementById('studentsBody');
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="4"><div class="spinner"></div></td></tr>';
+    try {
+      const { students } = await Admin.getUsers();
+      if (!students.length) {
+        tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><span class="e-icon">👥</span><p>No students yet.</p></div></td></tr>`;
+        return;
+      }
+      tbody.innerHTML = students.map((s, i) => `
+        <tr>
+          <td style="color:rgba(255,255,255,0.25); font-size:0.8rem;">${i+1}</td>
+          <td>
+            <div style="display:flex; align-items:center; gap:0.6rem;">
+              <div class="s-avatar">${userInitials(s.name)}</div>
+              <span style="font-weight:600; font-size:0.875rem;">${s.name}</span>
+            </div>
+          </td>
+          <td style="color:rgba(255,255,255,0.45); font-size:0.84rem;">${s.email}</td>
+          <td style="font-size:0.75rem; color:rgba(255,255,255,0.28);">${formatDate(s.createdAt)}</td>
+        </tr>`).join('');
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="4"><div class="alert alert-error" style="margin:1rem;">⚠ ${err.message}</div></td></tr>`;
+    }
+  }
+
+  // ── Manage Issue Modal ────────────────────────────────────────
+  async function openManageModal(id) {
+    document.getElementById('manageModal').classList.add('active');
+    document.getElementById('manageContent').innerHTML =
+      '<div class="spinner" style="margin:2rem auto;"></div>';
+    await loadTechnicians();
+    try {
+      const { issue } = await Admin.getIssue(id);
+      renderManageModal(issue);
+    } catch (err) {
+      document.getElementById('manageContent').innerHTML =
+        `<div class="alert alert-error">⚠ ${err.message}</div>`;
+    }
+  }
+
+  function renderManageModal(issue) {
+    const commentsHtml = (issue.comments || []).map(c => `
+      <div class="comment-bubble ${c.role === 'admin' ? 'admin-comment' : ''}">
+        <div class="comment-meta">
+          <span class="comment-author">${c.authorName || c.author?.name || '?'}</span>
+          <span class="comment-role ${c.role}">${c.role}</span>
+          <span class="comment-time">${timeAgo(c.createdAt)}</span>
+        </div>
+        <div class="comment-text">${c.text}</div>
+      </div>`).join('');
+
+    document.getElementById('manageContent').innerHTML = `
+      <div class="meta-grid">
+        <div class="meta-item">
+          <div class="label">Student</div>
+          <div class="value" style="font-size:0.82rem;">${issue.student?.name}</div>
+        </div>
+        <div class="meta-item">
+          <div class="label">Priority</div>
+          <div class="value">${priorityBadge(issue.priority)}</div>
+        </div>
+        <div class="meta-item">
+          <div class="label">Lab</div>
+          <div class="value">${issue.labNumber}</div>
+        </div>
+        <div class="meta-item">
+          <div class="label">System</div>
+          <div class="value">${issue.systemNumber}</div>
+        </div>
+      </div>
+
+      <div class="issue-description-box">${issue.description}</div>
+      ${issue.imageUrl ? `<img src="${imageUrl(issue.imageUrl)}" class="issue-image" alt="Issue"/>` : ''}
+
+      <hr class="section-divider"/>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.85rem; margin-bottom:0.85rem;">
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Update Status</label>
+          <select class="form-control" id="newStatus">
+            <option ${issue.status==='Pending'     ? 'selected':''}>Pending</option>
+            <option ${issue.status==='In Progress' ? 'selected':''}>In Progress</option>
+            <option ${issue.status==='Resolved'    ? 'selected':''}>Resolved</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Assign Technician</label>
+          <select class="form-control" id="assignedTo">
+            ${technicianOptions(issue.assignedTo?._id)}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Admin Remarks</label>
+        <textarea class="form-control" id="newRemarks" rows="2"
+          placeholder="Add notes visible to the student...">${issue.adminRemarks || ''}</textarea>
+      </div>
+
+      <div id="updateAlert" style="display:none;"></div>
+
+      <div style="display:flex; gap:0.6rem; justify-content:flex-end; margin-bottom:1rem;">
+        <button class="btn btn-ghost" onclick="closeModal('manageModal')">Cancel</button>
+        <button class="btn btn-primary" style="width:auto; padding:0.65rem 1.5rem;"
+          onclick="submitUpdate('${issue._id}')">Save Changes</button>
+      </div>
+
+      <hr class="section-divider"/>
+
+      <div style="margin-bottom:0.5rem;">
+        <h3 style="font-size:0.88rem; color:rgba(255,255,255,0.4); font-weight:600;">
+          💬 Thread
+          <span style="font-weight:400;">(${(issue.comments||[]).length})</span>
+        </h3>
+      </div>
+
+      <div class="comments-thread" id="adminCommentThread">
+        ${commentsHtml || '<div style="color:rgba(255,255,255,0.2); font-size:0.82rem; padding:0.4rem 0;">No comments yet.</div>'}
+      </div>
+
+      <div class="comment-input-row" style="margin-top:0.6rem;">
+        <input type="text" class="form-control" id="adminCommentInput"
+          placeholder="Add admin comment..."
+          onkeydown="if(event.key==='Enter') submitAdminComment('${issue._id}')"/>
+        <button class="btn btn-ghost btn-sm" onclick="submitAdminComment('${issue._id}')">Send</button>
+      </div>
+    `;
+  }
+
+  async function submitUpdate(id) {
+    const alertEl = document.getElementById('updateAlert');
+    try {
+      await Admin.updateIssue(id, {
+        status:       document.getElementById('newStatus').value,
+        adminRemarks: document.getElementById('newRemarks').value.trim(),
+        assignedTo:   document.getElementById('assignedTo').value || null
+      });
+      closeModal('manageModal');
+      showToast('Issue updated ✓', 'success');
+      const vis = [...document.querySelectorAll('[id^="section-"]')]
+        .find(s => s.style.display !== 'none')?.id.replace('section-', '');
+      if (vis === 'dashboard') { loadStats(); loadRecentIssues(); }
+      if (vis === 'issues')    { loadStats(); loadAllIssues(currentPage); }
+    } catch (err) {
+      alertEl.className = 'alert alert-error';
+      alertEl.innerHTML = `⚠ ${err.message}`;
+      alertEl.style.display = 'flex';
+    }
+  }
+
+  async function submitAdminComment(id) {
+    const input = document.getElementById('adminCommentInput');
+    const text  = input?.value?.trim();
+    if (!text) return;
+    try {
+      const { comments } = await Admin.addComment(id, text);
+      input.value = '';
+      const thread = document.getElementById('adminCommentThread');
+      const c = comments[comments.length - 1];
+      const div = document.createElement('div');
+      div.className = 'comment-bubble admin-comment';
+      div.innerHTML = `
+        <div class="comment-meta">
+          <span class="comment-author">${c.authorName || user.name}</span>
+          <span class="comment-role admin">admin</span>
+          <span class="comment-time">just now</span>
+        </div>
+        <div class="comment-text">${c.text}</div>`;
+      thread.appendChild(div);
+      thread.scrollTop = thread.scrollHeight;
+      showToast('Comment added', 'success');
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+  document.getElementById('manageModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal('manageModal');
+  });
+
+  // ── Init ─────────────────────────────────────────────────────
+  loadStats();
+  loadRecentIssues();
+</script>
+</body>
+</html>

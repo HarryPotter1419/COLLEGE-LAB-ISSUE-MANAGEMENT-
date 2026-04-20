@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Technician Dashboard — Lab Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #080d0a;
+      color: #ffffff;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+    }
+
+    /* ── SIDEBAR ─────────────────────────────────────────────── */
+    .sidebar {
+      width: 240px;
+      background: #050805;
+      border-right: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      z-index: 50;
+    }
+
+    .sidebar-brand {
+      display: flex; align-items: center; gap: 0.65rem;
+      padding: 1.4rem 1.25rem 1.2rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .brand-logo {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, #1de99b, #0fb870);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; flex-shrink: 0;
+      box-shadow: 0 0 16px rgba(29,233,155,0.3);
+    }
+
+    .brand-name { font-size: 0.9rem; font-weight: 400; color: #ffffff; }
+    .brand-name strong { font-weight: 800; color: #1de99b; }
+
+    .sidebar-nav {
+      flex: 1; padding: 1rem 0.75rem;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+
+    .nav-section-label {
+      font-size: 0.62rem; font-weight: 700;
+      color: rgba(255,255,255,0.2);
+      text-transform: uppercase; letter-spacing: 0.1em;
+      padding: 0.6rem 0.75rem 0.3rem;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 0.7rem;
+      padding: 0.6rem 0.85rem; border-radius: 8px;
+      color: rgba(255,255,255,0.45);
+      font-size: 0.875rem; font-weight: 500;
+      cursor: pointer; transition: all 0.15s ease;
+      border: none; background: transparent;
+      width: 100%; text-align: left; text-decoration: none;
+    }
+
+    .nav-item:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.05); text-decoration: none; }
+    .nav-item.active { color: #1de99b; background: rgba(29,233,155,0.08); border: 1px solid rgba(29,233,155,0.15); }
+    .nav-item .n-icon { width: 16px; text-align: center; font-size: 0.85rem; }
+
+    .sidebar-user {
+      padding: 0.9rem 1rem;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      display: flex; align-items: center; gap: 0.65rem;
+    }
+
+    .u-avatar {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, #2dd4bf, #0d9488);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 700; color: #fff;
+      flex-shrink: 0;
+    }
+
+    .u-name { font-size: 0.82rem; font-weight: 600; color: #ffffff; }
+    .u-role { font-size: 0.68rem; color: rgba(255,255,255,0.3); margin-top: 1px; }
+
+    .u-logout {
+      margin-left: auto; background: none; border: none;
+      color: rgba(255,255,255,0.25); cursor: pointer;
+      font-size: 0.95rem; padding: 4px; border-radius: 6px;
+      transition: color 0.15s ease;
+    }
+    .u-logout:hover { color: #ef4444; }
+
+    /* ── MAIN ────────────────────────────────────────────────── */
+    .main-wrap {
+      margin-left: 240px; flex: 1;
+      display: flex; flex-direction: column; min-height: 100vh;
+    }
+
+    .topbar {
+      height: 60px; background: #050805;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex; align-items: center;
+      padding: 0 1.75rem; gap: 1rem;
+      position: sticky; top: 0; z-index: 40;
+    }
+
+    .topbar-title { font-size: 0.9rem; font-weight: 600; color: rgba(255,255,255,0.5); }
+    .topbar-right { display: flex; align-items: center; gap: 0.65rem; margin-left: auto; }
+
+    .topbar-user-chip {
+      display: flex; align-items: center; gap: 0.5rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 0.28rem 0.85rem 0.28rem 0.35rem;
+    }
+
+    .chip-avatar {
+      width: 24px; height: 24px;
+      background: linear-gradient(135deg, #2dd4bf, #0d9488);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.62rem; font-weight: 700; color: #fff;
+    }
+
+    .chip-name { font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.8); }
+
+    .role-pill {
+      background: rgba(45,212,191,0.1);
+      border: 1px solid rgba(45,212,191,0.2);
+      color: #2dd4bf;
+      font-size: 0.65rem; font-weight: 700;
+      padding: 0.18rem 0.55rem; border-radius: 20px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+
+    .btn-signout {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.5);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78rem; font-weight: 500;
+      padding: 0.35rem 0.85rem; border-radius: 7px;
+      cursor: pointer; transition: all 0.15s ease;
+    }
+    .btn-signout:hover { border-color: rgba(239,68,68,0.4); color: #ef4444; }
+
+    .main-content { flex: 1; padding: 1.75rem; background: #080d0a; }
+
+    /* ── PAGE HEADER ─────────────────────────────────────────── */
+    .page-header {
+      display: flex; align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+    }
+
+    .page-header h1 { font-size: 1.5rem; font-weight: 700; color: #ffffff; letter-spacing: -0.02em; }
+    .page-header p  { font-size: 0.82rem; color: rgba(255,255,255,0.35); margin-top: 0.2rem; }
+
+    /* ── STAT CARDS ──────────────────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem; margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: #0d1410;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px; padding: 1.1rem 1.2rem;
+      transition: border-color 0.15s ease, transform 0.15s ease;
+    }
+
+    .stat-card:hover { border-color: rgba(45,212,191,0.2); transform: translateY(-2px); }
+
+    .stat-icon-box {
+      width: 36px; height: 36px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.95rem; margin-bottom: 0.85rem;
+    }
+
+    .stat-icon-box.teal   { background: rgba(45,212,191,0.1); }
+    .stat-icon-box.yellow { background: rgba(245,158,11,0.1); }
+    .stat-icon-box.blue   { background: rgba(59,130,246,0.1); }
+    .stat-icon-box.green  { background: rgba(29,233,155,0.1); }
+
+    .stat-num {
+      font-size: 1.9rem; font-weight: 800; color: #ffffff;
+      line-height: 1; letter-spacing: -0.03em; margin-bottom: 0.3rem;
+    }
+
+    .stat-num.teal   { color: #2dd4bf; }
+    .stat-num.yellow { color: #f59e0b; }
+    .stat-num.blue   { color: #3b9eff; }
+    .stat-num.green  { color: #1de99b; }
+
+    .stat-label {
+      font-size: 0.72rem; font-weight: 500;
+      color: rgba(255,255,255,0.3);
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+
+    /* ── SECTION CARD ────────────────────────────────────────── */
+    .section-card {
+      background: #0d1410;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px; overflow: hidden;
+      margin-bottom: 1.25rem;
+    }
+
+    .section-card-head {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.4rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      flex-wrap: wrap; gap: 0.75rem;
+    }
+
+    .section-card-head h3 { font-size: 0.95rem; font-weight: 700; color: #ffffff; }
+    .section-card-head p  { font-size: 0.75rem; color: rgba(255,255,255,0.3); margin-top: 0.1rem; }
+
+    /* ── TABLE ───────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    thead tr { border-bottom: 1px solid rgba(255,255,255,0.06); }
+
+    th {
+      padding: 0.75rem 1.25rem; text-align: left;
+      font-size: 0.7rem; font-weight: 600;
+      color: rgba(255,255,255,0.28);
+      text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap;
+    }
+
+    td {
+      padding: 0.9rem 1.25rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.85); vertical-align: middle;
+    }
+
+    tbody tr { transition: background 0.12s ease; }
+    tbody tr:hover { background: rgba(255,255,255,0.02); }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .issue-id { color: #2dd4bf; font-weight: 700; font-size: 0.78rem; letter-spacing: 0.02em; }
+
+    .student-cell .s-name  { font-weight: 600; color: #ffffff; font-size: 0.875rem; }
+    .student-cell .s-email { font-size: 0.72rem; color: rgba(255,255,255,0.3); margin-top: 2px; }
+
+    .desc-cell {
+      max-width: 220px; overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap;
+      font-weight: 500; color: rgba(255,255,255,0.8);
+    }
+
+    .sys-pill {
+      display: inline-flex;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 5px; padding: 0.18rem 0.55rem;
+      font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.75);
+    }
+
+    /* ── BADGES ──────────────────────────────────────────────── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 0.28rem;
+      padding: 0.25rem 0.7rem; border-radius: 20px;
+      font-size: 0.72rem; font-weight: 600;
+      white-space: nowrap; border: 1px solid transparent;
+    }
+
+    .badge-pending   { background: rgba(245,158,11,0.1);  color: #f59e0b; border-color: rgba(245,158,11,0.2);  }
+    .badge-progress  { background: rgba(59,158,255,0.1);  color: #3b9eff; border-color: rgba(59,158,255,0.2);  }
+    .badge-resolved  { background: rgba(29,233,155,0.1);  color: #1de99b; border-color: rgba(29,233,155,0.2);  }
+    .badge-high      { background: rgba(239,68,68,0.1);   color: #f87171; border-color: rgba(239,68,68,0.2);   }
+    .badge-medium    { background: rgba(245,158,11,0.1);  color: #f59e0b; border-color: rgba(245,158,11,0.2);  }
+    .badge-low       { background: rgba(29,233,155,0.1);  color: #1de99b; border-color: rgba(29,233,155,0.2);  }
+
+    .badge-pending::before  { content: '⊙'; font-size: 0.68rem; }
+    .badge-progress::before { content: '◔'; font-size: 0.68rem; display: inline-block; animation: spin 2s linear infinite; }
+    .badge-resolved::before { content: '✓'; }
+    .badge-high::before     { content: '↑'; font-weight: 800; }
+    .badge-medium::before   { content: '~'; font-weight: 800; }
+    .badge-low::before      { content: '↓'; font-weight: 800; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── BUTTONS ─────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 0.4rem; padding: 0.55rem 1.1rem; border-radius: 8px;
+      font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.84rem;
+      cursor: pointer; border: none; transition: all 0.15s ease; white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, #2dd4bf, #0d9488);
+      color: #011a18;
+      box-shadow: 0 4px 16px rgba(45,212,191,0.25);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(45,212,191,0.4); }
+
+    .btn-ghost {
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.5);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .btn-ghost:hover { color: #ffffff; border-color: rgba(255,255,255,0.18); }
+
+    .btn-sm { padding: 0.32rem 0.75rem; font-size: 0.76rem; border-radius: 6px; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+    /* ── MODAL ───────────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 999; padding: 1rem;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.active { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: #0d1410;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px; padding: 1.75rem;
+      width: 100%; max-width: 560px;
+      max-height: 90vh; overflow-y: auto;
+      transform: translateY(16px) scale(0.98);
+      transition: transform 0.22s ease;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+      position: relative;
+    }
+
+    .modal::before {
+      content: '';
+      position: absolute; top: 0; left: 20%; right: 20%; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(45,212,191,0.4), transparent);
+    }
+
+    .modal-overlay.active .modal { transform: translateY(0) scale(1); overflow-y: auto; }
+
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.25rem; padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .modal-header h3 { font-size: 1rem; font-weight: 700; color: #ffffff; }
+
+    .modal-close {
+      width: 28px; height: 28px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: rgba(255,255,255,0.4); font-size: 0.8rem;
+      transition: all 0.15s ease;
+    }
+    .modal-close:hover { background: rgba(239,68,68,0.1); color: #ef4444; border-color: rgba(239,68,68,0.25); }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 0.6rem; margin-bottom: 1rem;
+    }
+
+    .meta-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px; padding: 0.6rem 0.8rem;
+    }
+
+    .meta-item .label {
+      font-size: 0.65rem; font-weight: 700;
+      color: rgba(255,255,255,0.28);
+      text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.28rem;
+    }
+
+    .meta-item .value { font-size: 0.85rem; font-weight: 600; color: #ffffff; }
+
+    .issue-description-box {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px; padding: 0.85rem;
+      font-size: 0.875rem; color: rgba(255,255,255,0.65);
+      line-height: 1.65; margin-bottom: 1rem; white-space: pre-wrap;
+    }
+
+    .issue-image {
+      border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);
+      max-height: 220px; width: 100%;
+      object-fit: cover; margin-bottom: 1rem;
+    }
+
+    .remarks-box {
+      background: rgba(245,158,11,0.06);
+      border: 1px solid rgba(245,158,11,0.18);
+      border-radius: 8px; padding: 0.75rem 0.9rem;
+      font-size: 0.84rem; color: #fde68a; margin-bottom: 1rem;
+    }
+
+    .remarks-box .r-label {
+      font-size: 0.68rem; font-weight: 700; color: #f59e0b;
+      text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.28rem;
+    }
+
+    .section-divider { border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 1rem 0; }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-label {
+      display: block; font-size: 0.72rem; font-weight: 600;
+      color: rgba(255,255,255,0.38);
+      text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.38rem;
+    }
+
+    .form-control {
+      width: 100%; background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px; padding: 0.6rem 0.85rem;
+      font-family: 'Inter', sans-serif; font-size: 0.875rem; color: #ffffff;
+      outline: none; transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .form-control:focus { border-color: rgba(45,212,191,0.4); box-shadow: 0 0 0 3px rgba(45,212,191,0.08); }
+    .form-control::placeholder { color: rgba(255,255,255,0.18); }
+    textarea.form-control { resize: vertical; min-height: 80px; }
+
+    /* Comments */
+    .comments-thread {
+      display: flex; flex-direction: column; gap: 0.5rem;
+      max-height: 200px; overflow-y: auto;
+      padding-right: 2px; margin-bottom: 0.6rem;
+    }
+
+    .comment-bubble {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px; padding: 0.6rem 0.8rem;
+    }
+
+    .comment-bubble.admin-comment { background: rgba(45,212,191,0.04); border-color: rgba(45,212,191,0.15); }
+
+    .comment-meta { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.28rem; }
+    .comment-author { font-size: 0.78rem; font-weight: 700; color: #ffffff; }
+
+    .comment-role {
+      font-size: 0.62rem; font-weight: 700;
+      padding: 0.08rem 0.38rem; border-radius: 10px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+
+    .comment-role.student    { background: rgba(29,233,155,0.1);  color: #1de99b; }
+    .comment-role.admin      { background: rgba(245,158,11,0.1);  color: #f59e0b; }
+    .comment-role.technician { background: rgba(45,212,191,0.1);  color: #2dd4bf; }
+
+    .comment-time { font-size: 0.65rem; color: rgba(255,255,255,0.2); margin-left: auto; }
+    .comment-text { font-size: 0.84rem; color: rgba(255,255,255,0.55); line-height: 1.5; }
+
+    .comment-input-row { display: flex; gap: 0.5rem; }
+    .comment-input-row .form-control { flex: 1; padding: 0.5rem 0.75rem; }
+
+    .alert {
+      padding: 0.65rem 0.9rem; border-radius: 8px;
+      font-size: 0.84rem; font-weight: 500;
+      margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;
+    }
+    .alert-error   { background: rgba(239,68,68,0.08);  color: #f87171; border: 1px solid rgba(239,68,68,0.18); }
+    .alert-success { background: rgba(29,233,155,0.08); color: #1de99b; border: 1px solid rgba(29,233,155,0.18); }
+
+    .toast-container {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem;
+    }
+
+    .toast {
+      padding: 0.7rem 1.1rem; background: #0d1410;
+      border: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.85); border-radius: 8px;
+      font-size: 0.84rem; font-weight: 500;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+      animation: toastIn 0.25s ease;
+      display: flex; align-items: center; gap: 0.5rem; min-width: 220px;
+    }
+
+    .toast.success { background: rgba(29,233,155,0.08); border-color: rgba(29,233,155,0.2); color: #1de99b; }
+    .toast.error   { background: rgba(239,68,68,0.08);  border-color: rgba(239,68,68,0.2);  color: #f87171; }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .empty-state { text-align: center; padding: 3rem 1rem; color: rgba(255,255,255,0.2); }
+    .empty-state .e-icon { font-size: 2.2rem; margin-bottom: 0.65rem; opacity: 0.4; display: block; }
+    .empty-state p { font-size: 0.875rem; line-height: 1.6; }
+
+    .spinner {
+      width: 22px; height: 22px;
+      border: 2px solid rgba(255,255,255,0.08);
+      border-top-color: #2dd4bf;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+      margin: 0 auto;
+    }
+    .loading-row td { text-align: center; padding: 2.5rem !important; }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #080d0a; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .main-wrap { margin-left: 0; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════ SIDEBAR ═══════ -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">🔬</div>
+    <span class="brand-name">lab<strong>management</strong></span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Menu</div>
+    <a class="nav-item active" id="nav-assigned" onclick="showSection('assigned')" href="#">
+      <span class="n-icon">🔧</span> Assigned Issues
+    </a>
+    <a class="nav-item" id="nav-all" onclick="showSection('all')" href="#">
+      <span class="n-icon">📋</span> All Issues
+    </a>
+  </nav>
+
+  <div class="sidebar-user">
+    <div class="u-avatar" id="sidebarAvatar">?</div>
+    <div>
+      <div class="u-name" id="sidebarName">Loading...</div>
+      <div class="u-role">Technician</div>
+    </div>
+    <button class="u-logout" onclick="Auth.logout()" title="Log out">↪</button>
+  </div>
+</aside>
+
+<!-- ═══════ MAIN WRAP ═══════ -->
+<div class="main-wrap">
+
+  <div class="topbar">
+    <span class="topbar-title" id="topbarTitle">Assigned Issues</span>
+    <div class="topbar-right">
+      <div class="topbar-user-chip">
+        <div class="chip-avatar" id="topAvatar">?</div>
+        <span class="chip-name" id="topName">Loading...</span>
+      </div>
+      <span class="role-pill">Technician</span>
+      <button class="btn-signout" onclick="Auth.logout()">Log Out</button>
+    </div>
+  </div>
+
+  <div class="main-content">
+
+    <!-- ══════ ASSIGNED ISSUES ══════ -->
+    <section id="section-assigned">
+      <div class="page-header">
+        <div>
+          <h1>Assigned Issues</h1>
+          <p>Issues assigned to you for resolution</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadAssignedIssues()">↻ Refresh</button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon-box teal">🔧</div>
+          <div class="stat-num teal" id="st-assigned">—</div>
+          <div class="stat-label">Assigned to Me</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon-box yellow">⏳</div>
+          <div class="stat-num yellow" id="st-pending">—</div>
+          <div class="stat-label">Pending</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon-box blue">⚙️</div>
+          <div class="stat-num blue" id="st-progress">—</div>
+          <div class="stat-label">In Progress</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon-box green">✅</div>
+          <div class="stat-num green" id="st-resolved">—</div>
+          <div class="stat-label">Resolved</div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-card-head">
+          <div>
+            <h3>My Assigned Issues</h3>
+            <p>Issues that have been assigned to you by admin</p>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Issue ID</th><th>Student</th><th>Description</th>
+                <th>Lab / System</th><th>Priority</th><th>Status</th><th>Reported</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="assignedBody">
+              <tr class="loading-row"><td colspan="8"><div class="spinner"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ ALL ISSUES ══════ -->
+    <section id="section-all" style="display:none;">
+      <div class="page-header">
+        <div>
+          <h1>All Issues</h1>
+          <p>Read-only view of all reported lab issues</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadAllIssues()">↻ Refresh</button>
+      </div>
+
+      <div class="section-card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Issue ID</th><th>Student</th><th>Description</th>
+                <th>Lab</th><th>Priority</th><th>Status</th><th>Assigned</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="allBody">
+              <tr class="loading-row"><td colspan="8"><div class="spinner"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- ═══════ ISSUE DETAIL MODAL ═══════ -->
+<div class="modal-overlay" id="issueModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Issue Details</h3>
+      <button class="modal-close" onclick="closeModal('issueModal')">✕</button>
+    </div>
+    <div id="issueContent"><div class="spinner" style="margin:2rem auto;"></div></div>
+  </div>
+</div>
+
+<div class="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script>
+  // Technician uses student routes to view issues
+  const user = requireAuth('technician');
+  if (user) {
+    document.getElementById('sidebarAvatar').textContent = userInitials(user.name);
+    document.getElementById('sidebarName').textContent   = user.name;
+    document.getElementById('topAvatar').textContent     = userInitials(user.name);
+    document.getElementById('topName').textContent       = user.name;
+  }
+
+  // ── Section nav ─────────────────────────────────────────────
+  function showSection(name) {
+    document.querySelectorAll('[id^="section-"]').forEach(s => s.style.display = 'none');
+    document.getElementById('section-' + name).style.display = 'block';
+    document.querySelectorAll('.nav-item').forEach(a =>
+      a.classList.toggle('active', a.id === 'nav-' + name)
+    );
+    const titles = { assigned: 'Assigned Issues', all: 'All Issues' };
+    document.getElementById('topbarTitle').textContent = titles[name] || '';
+    if (name === 'assigned') loadAssignedIssues();
+    if (name === 'all')      loadAllIssues();
+  }
+
+  // ── Load assigned issues — uses dedicated technician API ───────
+  async function loadAssignedIssues() {
+    const tbody = document.getElementById('assignedBody');
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="8"><div class="spinner"></div></td></tr>';
+    try {
+      const data = await Technician.getMyIssues();
+      const assigned = data.issues;
+
+      document.getElementById('st-assigned').textContent = assigned.length;
+      document.getElementById('st-pending').textContent  = assigned.filter(i => i.status === 'Pending').length;
+      document.getElementById('st-progress').textContent = assigned.filter(i => i.status === 'In Progress').length;
+      document.getElementById('st-resolved').textContent = assigned.filter(i => i.status === 'Resolved').length;
+
+      if (!assigned.length) {
+        tbody.innerHTML = `<tr><td colspan="8">
+          <div class="empty-state">
+            <span class="e-icon">🔧</span>
+            <p>No issues assigned to you yet.<br/>Check back later or contact the admin.</p>
+          </div></td></tr>`;
+        return;
+      }
+
+      let c = 1;
+      tbody.innerHTML = assigned.map(issue => `
+        <tr>
+          <td><span class="issue-id">ISS-${String(c++).padStart(3,'0')}</span></td>
+          <td>
+            <div class="student-cell">
+              <div class="s-name">${issue.student?.name || 'N/A'}</div>
+              <div class="s-email">${issue.student?.email || ''}</div>
+            </div>
+          </td>
+          <td><div class="desc-cell" title="${issue.description}">${issue.description}</div></td>
+          <td>
+            <div style="font-size:0.82rem; color:rgba(255,255,255,0.55);">${issue.labNumber}</div>
+            <div class="sys-pill">${issue.systemNumber}</div>
+          </td>
+          <td>${priorityBadge(issue.priority)}</td>
+          <td>${statusBadge(issue.status)}</td>
+          <td style="font-size:0.75rem; color:rgba(255,255,255,0.3);">${timeAgo(issue.createdAt)}</td>
+          <td><button class="btn btn-primary btn-sm" onclick="viewIssue('${issue._id}')">View</button></td>
+        </tr>`).join('');
+
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="8"><div class="alert alert-error" style="margin:1rem;">⚠ ${err.message}</div></td></tr>`;
+    }
+  }
+
+  // ── Load all issues (read-only) ──────────────────────────────
+  async function loadAllIssues() {
+    const tbody = document.getElementById('allBody');
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="8"><div class="spinner"></div></td></tr>';
+    try {
+      const data = await Technician.getAllIssues();
+
+      if (!data.issues.length) {
+        tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><span class="e-icon">📭</span><p>No issues yet.</p></div></td></tr>`;
+        return;
+      }
+
+      let c = 1;
+      tbody.innerHTML = data.issues.map(issue => `
+        <tr>
+          <td><span class="issue-id">ISS-${String(c++).padStart(3,'0')}</span></td>
+          <td>
+            <div class="student-cell">
+              <div class="s-name">${issue.student?.name || 'N/A'}</div>
+              <div class="s-email">${issue.student?.email || ''}</div>
+            </div>
+          </td>
+          <td><div class="desc-cell" title="${issue.description}">${issue.description}</div></td>
+          <td style="font-size:0.82rem; color:rgba(255,255,255,0.55);">${issue.labNumber}</td>
+          <td>${priorityBadge(issue.priority)}</td>
+          <td>${statusBadge(issue.status)}</td>
+          <td style="font-size:0.8rem; color:${issue.assignedTo ? '#2dd4bf' : 'rgba(255,255,255,0.2)'};">
+            ${issue.assignedTo ? '🔧 ' + issue.assignedTo.name : '—'}
+          </td>
+          <td><button class="btn btn-ghost btn-sm" onclick="viewIssue('${issue._id}')">View</button></td>
+        </tr>`).join('');
+
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="8"><div class="alert alert-error" style="margin:1rem;">⚠ ${err.message}</div></td></tr>`;
+    }
+  }
+
+  // ── View issue detail ────────────────────────────────────────
+  async function viewIssue(id) {
+    document.getElementById('issueModal').classList.add('active');
+    document.getElementById('issueContent').innerHTML =
+      '<div class="spinner" style="margin:2rem auto;"></div>';
+    try {
+      // Try assigned route first, fall back to all-issues for read-only view
+      let issue;
+      try {
+        const res = await Technician.getMyIssue(id);
+        issue = res.issue;
+      } catch {
+        const all = await Technician.getAllIssues();
+        issue = all.issues.find(i => i._id === id);
+      }
+      renderIssueDetail(issue);
+    } catch (err) {
+      document.getElementById('issueContent').innerHTML =
+        `<div class="alert alert-error">⚠ ${err.message}</div>`;
+    }
+  }
+
+  function renderIssueDetail(issue) {
+    const isAssigned = issue.assignedTo &&
+      (String(issue.assignedTo._id) === String(user.id) || String(issue.assignedTo) === String(user.id));
+
+    const commentsHtml = (issue.comments || []).map(c => `
+      <div class="comment-bubble ${c.role === 'admin' ? 'admin-comment' : ''}">
+        <div class="comment-meta">
+          <span class="comment-author">${c.authorName || c.author?.name || '?'}</span>
+          <span class="comment-role ${c.role}">${c.role}</span>
+          <span class="comment-time">${timeAgo(c.createdAt)}</span>
+        </div>
+        <div class="comment-text">${c.text}</div>
+      </div>`).join('');
+
+    // Only show update controls if issue is assigned to this technician
+    const updateControls = isAssigned && issue.status !== 'Resolved' ? `
+      <hr class="section-divider"/>
+      <div style="margin-bottom:0.75rem;">
+        <h3 style="font-size:0.88rem; color:rgba(255,255,255,0.6); font-weight:700;">🔧 Update Issue</h3>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.75rem;">
+        <button class="btn btn-sm" id="btnInProgress"
+          onclick="updateIssueStatus('${issue._id}', 'In Progress')"
+          style="background:rgba(59,158,255,0.1); border:1px solid rgba(59,158,255,0.3);
+          color:#3b9eff; font-family:Inter,sans-serif; font-weight:600; padding:0.6rem;
+          border-radius:8px; cursor:pointer; transition:all 0.15s ease; font-size:0.84rem;">
+          ⚙️ Mark In Progress
+        </button>
+        <button class="btn btn-sm" id="btnResolved"
+          onclick="updateIssueStatus('${issue._id}', 'Resolved')"
+          style="background:rgba(29,233,155,0.1); border:1px solid rgba(29,233,155,0.3);
+          color:#1de99b; font-family:Inter,sans-serif; font-weight:600; padding:0.6rem;
+          border-radius:8px; cursor:pointer; transition:all 0.15s ease; font-size:0.84rem;">
+          ✅ Mark Resolved
+        </button>
+      </div>
+
+      <div style="margin-bottom:0.75rem;">
+        <textarea id="repairNote"
+          style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+          border-radius:8px; padding:0.65rem 0.9rem; font-family:Inter,sans-serif; font-size:0.875rem;
+          color:#ffffff; outline:none; resize:vertical; min-height:70px;"
+          placeholder="Add a repair note (optional) — e.g. Replaced keyboard, tested all keys..."></textarea>
+      </div>
+      <div id="updateTechAlert" style="display:none; margin-bottom:0.5rem;"></div>` : '';
+
+    const resolvedNote = issue.status === 'Resolved' ? `
+      <div style="background:rgba(29,233,155,0.06); border:1px solid rgba(29,233,155,0.2);
+        border-radius:8px; padding:0.75rem 0.9rem; margin-bottom:1rem; font-size:0.84rem; color:#1de99b;">
+        ✅ This issue has been resolved.
+      </div>` : '';
+
+    document.getElementById('issueContent').innerHTML = `
+      <div class="meta-grid">
+        <div class="meta-item">
+          <div class="label">Status</div>
+          <div class="value">${statusBadge(issue.status)}</div>
+        </div>
+        <div class="meta-item">
+          <div class="label">Priority</div>
+          <div class="value">${priorityBadge(issue.priority)}</div>
+        </div>
+        <div class="meta-item">
+          <div class="label">Lab</div>
+          <div class="value">${issue.labNumber}</div>
+        </div>
+        <div class="meta-item">
+          <div class="label">System</div>
+          <div class="value">${issue.systemNumber}</div>
+        </div>
+        <div class="meta-item">
+          <div class="label">Student</div>
+          <div class="value" style="font-size:0.82rem;">${issue.student?.name || 'N/A'}</div>
+        </div>
+        <div class="meta-item">
+          <div class="label">Reported</div>
+          <div class="value" style="font-size:0.75rem;">${formatDate(issue.createdAt)}</div>
+        </div>
+      </div>
+
+      <div class="issue-description-box">${issue.description}</div>
+
+      ${issue.imageUrl ? `<img src="${imageUrl(issue.imageUrl)}" class="issue-image" alt="Issue"/>` : ''}
+
+      ${issue.adminRemarks ? `
+        <div class="remarks-box">
+          <div class="r-label">📝 Admin Remarks</div>
+          ${issue.adminRemarks}
+        </div>` : ''}
+
+      ${resolvedNote}
+      ${updateControls}
+
+      <hr class="section-divider"/>
+
+      <div style="margin-bottom:0.5rem;">
+        <h3 style="font-size:0.88rem; color:rgba(255,255,255,0.4); font-weight:600;">
+          💬 Comments & Notes
+          <span style="font-weight:400;">(${(issue.comments||[]).length})</span>
+        </h3>
+      </div>
+
+      <div class="comments-thread" id="techCommentThread">
+        ${commentsHtml || '<div style="color:rgba(255,255,255,0.2); font-size:0.82rem; padding:0.4rem 0;">No comments yet.</div>'}
+      </div>
+
+      ${isAssigned ? `
+      <div class="comment-input-row" style="margin-top:0.6rem;">
+        <input type="text" class="form-control" id="techCommentInput"
+          placeholder="Add a repair note or comment..."
+          onkeydown="if(event.key==='Enter') submitTechComment('${issue._id}')"/>
+        <button class="btn btn-ghost btn-sm" onclick="submitTechComment('${issue._id}')">Send</button>
+      </div>` : ''}
+
+      <div style="display:flex; justify-content:flex-end; margin-top:1rem;">
+        <button class="btn btn-ghost" onclick="closeModal('issueModal')">Close</button>
+      </div>
+    `;
+  }
+
+  // ── Update issue status by technician ────────────────────────
+  async function updateIssueStatus(id, status) {
+    const repairNote = document.getElementById('repairNote')?.value?.trim() || '';
+    const alertEl   = document.getElementById('updateTechAlert');
+    try {
+      await Technician.updateStatus(id, { status, repairNote });
+      closeModal('issueModal');
+      showToast(`Issue marked as ${status} ✓`, 'success');
+      loadAssignedIssues(); // refresh table + stats
+    } catch (err) {
+      if (alertEl) {
+        alertEl.className = 'alert alert-error';
+        alertEl.innerHTML = `⚠ ${err.message}`;
+        alertEl.style.display = 'flex';
+      }
+      showToast(err.message, 'error');
+    }
+  }
+
+  // ── Add technician comment ────────────────────────────────────
+  async function submitTechComment(id) {
+    const input = document.getElementById('techCommentInput');
+    const text  = input?.value?.trim();
+    if (!text) return;
+    try {
+      const { comments } = await Technician.addComment(id, text);
+      input.value = '';
+      const thread = document.getElementById('techCommentThread');
+      const c = comments[comments.length - 1];
+      const div = document.createElement('div');
+      div.className = 'comment-bubble';
+      div.innerHTML = `
+        <div class="comment-meta">
+          <span class="comment-author">${c.authorName || user.name}</span>
+          <span class="comment-role technician">technician</span>
+          <span class="comment-time">just now</span>
+        </div>
+        <div class="comment-text">${c.text}</div>`;
+      thread.appendChild(div);
+      thread.scrollTop = thread.scrollHeight;
+      showToast('Note added', 'success');
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+  document.getElementById('issueModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal('issueModal');
+  });
+
+  // ── Init ─────────────────────────────────────────────────────
+  loadAssignedIssues();
+</script>
+</body>
+</html>
