@@ -23,7 +23,7 @@ router.post('/', upload.single('image'), async (req, res) => {
       labNumber:    labNumber    || 'Not specified',
       systemNumber: systemNumber || 'Not specified',
       priority:     ['Low','Medium','High'].includes(priority) ? priority : 'Medium',
-      imageUrl:     req.file ? `/uploads/${req.file.filename}` : null
+      imageUrl: req.file ? req.file.path : null
     });
 
     await issue.populate('student', 'name email');
