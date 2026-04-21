@@ -3,7 +3,7 @@
  * New: comments, priority, technician assignment
  */
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'https://lab-issue-backend.onrender.com/api';
 
 // ─── Token / User ─────────────────────────────────────────────
 function getToken()      { return localStorage.getItem('lab_token'); }
@@ -132,7 +132,7 @@ function priorityBadge(p) {
 function imageUrl(path) {
   if (!path) return null;
   if (path.startsWith('http')) return path;
-  return `http://localhost:5000${path}`;
+  return `https://lab-issue-backend.onrender.com${path}`;
 }
 
 function userInitials(name) {
